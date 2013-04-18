@@ -1,6 +1,5 @@
 package fr.eurecom.nerd.nerdcrf;
 
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -61,9 +60,9 @@ public class PImpTask implements Runnable {
         
         for (List<CoreLabel> sentence : result) {
           for (CoreLabel word : sentence) {
-        	  out.print(word.word() + '/' + word.get(AnswerAnnotation.class) + ' ');
+        	  out.println(word.word() + ' ' + word.get(AnswerAnnotation.class));
           }
-          out.println();
+          //out.println();
         }
 	        
 	    out.close();
