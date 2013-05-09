@@ -13,5 +13,6 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Luca/Google Drive/NERD/src/jersey-archive-1.17/lib/jersey-core-1.17.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

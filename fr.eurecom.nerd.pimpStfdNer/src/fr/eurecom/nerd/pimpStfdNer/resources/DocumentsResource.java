@@ -35,11 +35,6 @@ public class DocumentsResource {
 
 	DocumentMap docs = DocumentMap.getInstance();
 
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	public String getCount() {
-		return "3";
-	}
 
 
 	@POST
