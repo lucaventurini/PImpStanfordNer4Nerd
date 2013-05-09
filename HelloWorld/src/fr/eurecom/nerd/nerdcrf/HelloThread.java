@@ -24,7 +24,7 @@ public class HelloThread {
 		
 		// load classifiers in memory
 	 	AbstractSequenceClassifier<CoreLabel> cl1 = CRFClassifier.getClassifier("classifiers/english.muc.7class.distsim.crf.ser.gz");
-	 	AbstractSequenceClassifier<CoreLabel> cl2 = CRFClassifier.getClassifier("classifiers/english.all.3class.distsim.crf.ser.gz");
+	 	//AbstractSequenceClassifier<CoreLabel> cl2 = CRFClassifier.getClassifier("classifiers/english.all.3class.distsim.crf.ser.gz");
 		
 		// create a new task
 		PImpTask t1 = new PImpTask(cl1, "la_divin.txt", "out_7class.txt");
