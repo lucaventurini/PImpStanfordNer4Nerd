@@ -48,16 +48,25 @@ public class HelloTrain {
 		
 		cl1.train("jane-austen-emma-ch1.tsv");
 		
+		// serialize the classifier (store it on disk)
+		cl1.serializeClassifier("classifiers/my_model.ser.gz");
+		
+		// reload it to test everything has been done properly
+	 	AbstractSequenceClassifier<CoreLabel> cl1bis = CRFClassifier.getClassifier("classifiers/my_model.ser.gz");
+
+		
 		
 		// load a 2nd classifier from memory to compare
 	 	AbstractSequenceClassifier<CoreLabel> cl2 = CRFClassifier.getClassifier("classifiers/english.muc.7class.distsim.crf.ser.gz");
 
 		// create a new task
 		PImpTask t1 = new PImpTask(cl1, "pg1342.txt", "out_trained.txt");
+		PImpTask t1bis = new PImpTask(cl1bis, "pg1342.txt", "out_trained_bis.txt");
 		PImpTask t2 = new PImpTask(cl2, "pg1342.txt", "out_gold.txt");
 
 		System.out.println("Now I will launch threads...");
 		threadpool.execute(t1);
+		threadpool.execute(t1bis);
 		threadpool.execute(t2);
 		
 		// close the program
