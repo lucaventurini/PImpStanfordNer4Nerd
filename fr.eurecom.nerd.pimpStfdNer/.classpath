@@ -29,5 +29,7 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/Luca/Google Drive/NERD/src/stanford-ner-2013-04-04/stanford-ner-1.2.8-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Luca/Google Drive/NERD/src/jersey-archive-1.17/contribs/jersey-multipart-1.17.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/mimepull-1.6.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
