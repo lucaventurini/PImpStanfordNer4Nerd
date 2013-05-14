@@ -53,14 +53,32 @@ public class ClassifierResource {
 		this.id = id;
 		this.cls=ClassifierMap.getInstance();
 	}
+	
+	/*
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public void uploadFileDebug(
+			//@FormDataParam("file") InputStream uploadedInputStream,
+			@FormDataParam("file") FormDataContentDisposition fileDetail
+			) {
+		System.out.println(fileDetail.toString());
+		
+	
+	}*/
 
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response uploadFile(
 			@FormDataParam("file") InputStream uploadedInputStream
-			//,@FormDataParam("file") FormDataContentDisposition fileDetail
+			,@FormDataParam("file") FormDataContentDisposition fileDetail
 			) {
-
+			
+	//TODO: workaround for fixing dependencies bug:
+	/*public Response uploadFile(
+			@FormDataParam("file") FormDataBodyPart bodyPart
+			) {
+		//FormDataContentDisposition fileDetail = bodyPart.getFormDataContentDisposition();
+		InputStream uploadedInputStream = bodyPart.getValueAs(InputStream.class);*/
 		String new_id;
 		ClassifierTrained c = cls.get(this.id);
 		if (c == null){

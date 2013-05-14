@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -28,6 +29,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 
 
 import fr.eurecom.nerd.pimpStfdNer.model.AnnotationMap;
+import fr.eurecom.nerd.pimpStfdNer.model.ClassifierMap;
 import fr.eurecom.nerd.pimpStfdNer.model.DocumentMap;
 
 @Path("/annotations")
@@ -40,21 +42,17 @@ public class AnnotationsResource {
 
 	DocumentMap docs;
 	AnnotationMap annotations;
-	
-	AbstractSequenceClassifier<CoreLabel> cl1;
-	
+	ClassifierMap cls;
+
+	//AbstractSequenceClassifier<CoreLabel> cl1;
+
 	public AnnotationsResource(){
 		docs = DocumentMap.getInstance();
 		annotations = AnnotationMap.getInstance();
-		
+
 		//TODO: implement an object pool of classifiers
-		
-		try {
-			cl1 = CRFClassifier.getClassifier("NERclassifiers/english.muc.7class.distsim.crf.ser.gz");
-		} catch (ClassCastException | ClassNotFoundException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		cls = ClassifierMap.getInstance();
 
 	}
 
@@ -64,11 +62,21 @@ public class AnnotationsResource {
 	//@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response newDocument(@FormParam("docId") String docId,
-			@FormParam("classifier") String cl,
+			@DefaultValue("default") @FormParam("classifier") String cl_id,
 			@Context HttpServletResponse servletResponse) throws IOException {
 		//TODO: load classifier with docId
+		AbstractSequenceClassifier<CoreLabel> cl;
 		
-		String new_id=annotations.put(cl1, docs.get(docId).getText());
+		/*
+		if(cl_id != null){
+			cl = cls.getClassifier(cl_id);
+		}else{
+			cl = cls.getClassifier("default");
+
+		}*/
+		cl = cls.getClassifier(cl_id);
+		
+		String new_id=annotations.put(cl, docs.get(docId).getText());
 		URI created_uri = null;
 		try {
 			created_uri = new URI(new_id);

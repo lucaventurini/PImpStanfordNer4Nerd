@@ -35,11 +35,20 @@ public class ClassifierTrained {
 		texts = new HashMap<String, String>();
 
 	}
+	
+	@Deprecated
+	public ClassifierTrained(String id, AbstractSequenceClassifier<CoreLabel> classifier){
+		this.id = id;
+		this.classifier=classifier;
+		this.texts = null;
+	}
 
 	public String add(InputStream uploadedInputStream) {
 		counter++;
 		try(Scanner scanner = new Scanner(uploadedInputStream,"UTF-8")){
-			texts.put(Integer.toString(counter),scanner.useDelimiter("\\A").next());
+			String tmp=scanner.useDelimiter("\\A").next();
+			texts.put(Integer.toString(counter), tmp);
+
 		}
 
 		//destroy the old classifier
@@ -67,6 +76,7 @@ public class ClassifierTrained {
 		// train
 		classifier.train(o);
 
+		//TODO: serialize the classifier
 		return classifier;
 	}
 

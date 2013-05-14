@@ -1,0 +1,13 @@
+fr\eurecom\nerd\pimpStfdNer\resources\ClassifierResource.class
+fr\eurecom\nerd\pimpStfdNer\resources\ClassifiersResource.class
+fr\eurecom\nerd\pimpStfdNer\resources\DocumentResource.class
+fr\eurecom\nerd\pimpStfdNer\resources\DocumentsResource.class
+fr\eurecom\nerd\pimpStfdNer\model\ClassifierTrained.class
+fr\eurecom\nerd\pimpStfdNer\resources\AnnotationsResource.class
+fr\eurecom\nerd\pimpStfdNer\model\ClassifierMap.class
+fr\eurecom\nerd\pimpStfdNer\model\Entity.class
+fr\eurecom\nerd\pimpStfdNer\model\DocumentMap.class
+fr\eurecom\nerd\pimpStfdNer\model\Annotation.class
+fr\eurecom\nerd\pimpStfdNer\resources\AnnotationResource.class
+fr\eurecom\nerd\pimpStfdNer\model\AnnotationMap.class
+fr\eurecom\nerd\pimpStfdNer\model\Document.class
