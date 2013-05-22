@@ -1,0 +1,99 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx} 
+\usepackage{pdfpages}
+\usepackage{fancyvrb}
+\usepackage{amsmath}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
+\usepackage{cite}
+\bibliographystyle{unsrt}
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\includegraphics[width=5cm]{EURECOM_logo_quadri}
+\\[3cm]
+\textbf{\Huge{TBD}}
+\\[2cm]
+\textbf{\textsc{\LARGE{Semester Project Report}}}
+\\[0.5cm]
+\LARGE{Luca Venturini}
+\\
+\large{Spring 2013}
+\\[8cm]
+\columnsep3cm
+\begin{tabular}{p{8cm} p{8.5cm}}
+\small{\textbf{Supervisors:}\newline
+Rapha\"el Troncy\newline
+Giuseppe Rizzo} 
+&
+\small{\textbf{EURECOM\newline Multimedia Department}}
+\end{tabular}
+\end{center}
+\end{titlepage}
+
+ \tableofcontents
+
+\chapter{Introduction}
+
+\chapter{State of the art}
+
+\section{Conditional Random Fields}
+\label{sec:crfs}
+Conditional Random Fields (CRFs) were introduced by Lafferty, McCallum and Pereira in 2001\cite{lafferty2001conditional} as a probabilistic model to segment and label sequence data. Considering our Named Entity Recognition task as a subtask of the labelling problem, we can define a log-linear model
+$$
+p(\overline{y} \mid \overline{x}; w) = \frac{1}{Z(\overline{x}, w)}\exp\sum\limits_j w_jF_j(\overline{x}, \overline{y})
+$$
+where $\overline{x}$ and $\overline{y}$ are our training sequence and the respective label sequence, $w_j$ are real-valued weights for feature functions $F_j$ and $Z$ is a partition function, defined as
+$$
+Z(\overline{x}, w) = \sum\limits_{\overline{y}}\exp\sum\limits_j w_jF_j(\overline{x}, \overline{y})
+$$
+A model can contain hundreds of thousands of different feature functions, which are computed over a single word, its position in the sentence, its labelling and possibly all the surrounding context (the whole $\overline{x}$ and $\overline{y}$). As example, consider the word "A.C.M.E.": its punctuation and the capitalization are two features strongly suggesting we are talking about an organization.
+
+Hence, training $w$ corresponds to the Maximum Likelihood Estimation of the parameters of our model, that is to say
+$$
+\hat{w} = \argmax_w p(\overline{y} \mid \overline{x}; w)
+$$
+Inference and decoding of $\overline{y}$ from a new sample $\overline{x}$ (i.e., labelling a document), will therefore correspond to
+$$
+\hat{y} = \argmax_y p(y \mid \overline{x}; \hat{w})
+$$
+There exist lots of methods to solve these two maximization problems in literature, and algorithms applied to the context of CRFs are still an interesting research field. Special training algorithms have been proposed, namely stochastic gradient ascent and derivations of Collins perceptron \cite{elkan2008log}.
+
+\section{Stanford NER}
+Stanford NER is a Java implementation of Conditional Random Fields for Named Entity Recognition, coupled with good feature extractors. The software provides interfaces to access the main utilities by command line and APIs to control the classifier (also known as CRFClassifier, to disambiguate from other tools developed by the same university based on Hidden Markov Models).
+
+The main difficulty approaching Stanford NER is the lack of documentation; little tutorials exist on using it by command line, but the only hints on APIs functioning are given by a couple of demos and the sourcecode itself.
+
+The software allows to train the classifier from own data; as we have seen in Section \ref{sec:crfs}, we need some training data, i.e. a dataset of labelled documents. The input format makes the token-label pairs explicit by listing a token per line, as in the following example (where the character O stands for "Other"):
+
+\begin{center}
+\begin{tabular}{ll}
+Sixteen &	O\\
+years	& O\\
+had	&O\\
+Miss	&PERS\\
+Taylor	&PERS\\
+been	&O\\
+in	&O\\
+Mr.	&PERS\\
+Woodhouse	&PERS\\
+'s	&O\\
+family	&O\\
+
+\end{tabular}
+\end{center}
+
+Once a model for the classifier is trained, it cannot be modified; however, since the training is deterministic, it is still possible to create new instances of the classifier from scratch. Trained classifiers are serialized and compressed into an archive storing the necessary parameters to reload it.
+
+Together with the library, Stanford provides already some good serialized classifiers, trained on 3 (Location, Person, Organization), 4 (Location, Person, Organization, Misc) and 7 Entity Types (Time, Location, Organization, Person, Money, Percent, Date), trained on CoNLL 2003 and MUC English training data. A typical use case sees the user loading these models from memory and elaborate some document, skipping the training part.
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{biblio}
+\nocite{*}
+
+
+\end{document}
