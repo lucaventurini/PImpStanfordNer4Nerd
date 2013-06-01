@@ -40,6 +40,7 @@ Rapha\"el Troncy
  \tableofcontents
 
 \chapter{Introduction}
+\label{sec:intro}
 Natural Language Recognition studies how to allow a machine to understand and possibly interact with an human being by means of the word, without any other kind of interactions between the two. A sign, such as a word, is formed by a signifier and a signified; only the former, the word itself, is accessible to the machine, while the latter is something meaningful only for men. However, machines can store and elaborate information correlated to signifiers, as well as all the linkages between them, without the need to understand their meaning. In other words, a machine is useful whenever it can shorten the path linking two pieces of information and show to the man the final linkage, saving the time to go through all the path. Hence a machine can state the average life span for English monarchs, simply going through a knowledge base of historical figures and retrieving values for "age at death", without knowing the meaning of life or death (which would be problematic for men as well).
 
 Usually a machine is able to work on structured data, i.e. where the pairs field-value and the relations are explicit, as in the previous example. The main goal of Natural Language Recognition is to retrieve information from unstructured data, as a news article or a free-text form. In the context of Web today, we see Petabytes of unstructured data "in the wild", and search engines which would like to index and understand some of the content enclosed in these pages; an effort to reach this result has been led by the promoters of Semantic Web, which attempts to have an uniform semantics over web pages dealing with the same topics, by means of tags (i.e. structured data "hidden" in the code of the page). However, too much unstructured information still exists to be manually structured by man.
@@ -113,6 +114,34 @@ family	&O\\
 Once a model for the classifier is trained, it cannot be modified; however, since the training is deterministic, it is still possible to create new instances of the classifier from scratch. Trained classifiers are serialized and compressed into an archive storing the necessary parameters to reload it.
 
 Together with the library, Stanford provides already some good serialized classifiers, trained on 3 (Location, Person, Organization), 4 (Location, Person, Organization, Misc) and 7 Entity Types (Time, Location, Organization, Person, Money, Percent, Date), trained on CoNLL 2003 and MUC English training data. A typical use case sees the user loading these models from memory and elaborate some document, skipping the training part.
+
+\chapter{TAC KBP evaluation campaign}
+Text Analysis Conference (TAC) was born in 2009 to lead the research in Natural Language Processing, by means of the proposal of several tracks of study and a common definition of objectives, challenges and evaluation criteria. This effort, shared by many universities and research teams in the world, aims both to bring new solutions and to propose new challenges to the community. The track we are particularly interested in, for the tight relationship with the work on Named Entities, is Knowledge Base Population (KBP).
+
+KBP task is actually made of many subtasks: in the following sections, we will specifically focus on two of them, Slot Filling and Entity Linking task, that we already introduced in \S \ref{sec:intro}. The discussion of this topic is in any way meant to be exhaustive, but we would like to give here an interesting introspection on the problems, the solutions proposed and the evaluation of the results.
+
+Task definitions can be found at %TODO cite.
+
+%TODO better specify the general approach of the "shared task"
+
+\section{Slot Filling task}
+Slot filling task aims to populate the fields of a structured form with data coming from unstructured knowledge. The typical scenario is the population of a Knowledge Base, such as Wikipedia: in this case, the structured form is Wikipedia infobox, whose fields vary depending of the type of the entity in object, and the unstructured knowledge is the text of the page (the description, in plain English).
+We may want, for example, to extract some missing values for movie director Steven Spielberg, like the name of his spouse or children, directly from the text, or from a corpus of news articles. Obviously, a Slot Filler should also consider the case where such values are not pertinent, and the slot should not be filled (e.g., there are no children for a given person).
+
+Table \ref{tab:sf} shows a quick summary of the task in the years. First, we can notice that the corpus for training has been always growing, adding different types of sources. Entity types for which the slot filling task was required were initially Person, Organization and Geo-Political Entity: the last mentioned has been dropped in the following editions, since information in the corpora on such entities was not enough to fill the slots (usually, news articles citing toponyms do not give details useful for a Knowledge Base, like the number of inhabitants).
+
+The number and type of subtasks changed a lot through the years, including the following:
+
+\begin{description}
+\item{Slot value linking} This task consisted in linking the new filled slot with the appropriate entity in the KB (e.g. after having filled the value for Steven Spielberg's father, link it to the node for the right Arnold Spielberg). Since it had great overlap with the Entity Linking task, it was dismissed after the very first year.
+\item{Surprise Slot Filling} The teams were required to compete on a surprise subject and submit results in 4 days. A few teams participated.
+\item{Temporal Slot Filling} Together with the filling values, participating systems are required to provide the date when this value has been valid (e.g. for a "spouse" field, date of marriage and divorce). The task was divided in full filling (i.e. finding the values and provide the dates) and diagnostic filling (i.e. state, given the slot filling value, in which dates this value was valid). This task will be retried in 2013.
+\item{Cross-Lingual slot filling} Spanish language was added to the task.
+\item{Slot Filler Validation} The input of such a system is the output of other Slot Filling systems; the output, for each of them, is just whether they are correct or incorrect.
+\item{Confidence Scores} For each value to fill a slot, a confidence score between 0.0 and 1.0 is given. This score states how sure the system is of the choice; having different possible values for a given slot, the sum of all the confidence scores for those values is 1.
+\item{Justification} Together with the answer, a justification is given, in the form of a mention to the document id and offset in the page where such a justification can be found. For instance, a justification can be "From 1985 to 1989 Spielberg was married to actress Amy Irving".
+\item{Sentiment} In 2013, systems will optionally be required to state whether a value for a slot is given with a positive or negative sentiment (or neutral).
+\end{description}
 
 \chapter{Building a framework for NER adaptation}
 
