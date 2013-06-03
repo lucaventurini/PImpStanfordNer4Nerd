@@ -237,6 +237,26 @@ We can see the two core phases in the general architecture in Figure \ref{fig:el
 \label{fig:el_arch}
 \end{figure}
 
+\subsection{A first example: HLTCOE solution}
+We will now show an overview of the main methods used by a real implementation of the general structure seen in previous section. The system in object was realized by the Human Language Technology Center of Excellence of Johns Hopkins University, Baltimore (HLTCOE).
+
+In Candidate Generation phase we identify the following steps:
+\begin{itemize}
+\item Acronyms are expanded, whenever it is possible;
+\item A search for aliases of the query string is tried (in Wikipedia redirection pages and stock tickers);
+\end{itemize}
+
+For each of the words in the expanded set (original query, acronyms, aliases):
+\begin{itemize}
+
+\item Search for exact matches in the KB;
+\item Search for KB nodes with words in common, and take the top 20 results;
+\item Search for approximate matches with the KB nodes, and take the top 20 results.
+\end{itemize}
+
+Notably, the authors choose not to "pollute" the candidate set with too many fuzzy candidates, limiting the number of results from not-exact methods. Moreover, they also point out that some tests were made generating candidates from all the Named Entities in the document; while this improves the effectiveness of the candidate generation, it lowers the final accuracy of the system and therefore it has not been integrated.
+
+
 
 \chapter{Building a framework for NER adaptation}
 
