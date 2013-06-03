@@ -4,6 +4,11 @@
 \usepackage{graphicx} 
 \usepackage{pdfpages}
 \usepackage{fancyvrb}
+\usepackage{tabularx}
+%\usepackage{pifonts}
+%\newcommand{\tick}{\ding{52}}
+\newcommand{\tick}{$\times$}
+
 \usepackage{amsmath}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
 
@@ -53,7 +58,7 @@ Named Entity Extraction, also known as Named Entity Recognition (NER), and Named
 \section{The problem}
 Named Entity Recognition needs a first phase of training: a big training set is needed to reach good results, data needs to be collected from various sources and labelled. The very first extractors were trained on articles from newspapers; but performances on different type of contexts (such as Web fora, narrative, email messages...) are much worse than on documents from the same type of source, or maybe the same newspaper.
 
-The challenge here is to study how extractors can adapt to different contexts or corpora and how well they can react to the adaptation. In the next section, we will provide an insight on a NER system designed at Stanford, in order to give an understanding on how such training could be approached and what does it mean having a trained model. Next, we will look at TAC KBP evaluation campaign, where similar systems are compared and new trends for research in the field are proposed; we will focus particularly on NEL systems and their global performances, to have an idea on the evaluation method. Finally, we will present our web service, an interface to Stanford NER which allows an user to train it from own datasets.
+The challenge here is to study how extractors can adapt to different contexts or corpora and how well they can react to the adaptation. In the next section, we will provide an insight on a NER system designed at Stanford, in order to give an understanding on how such training could be approached and what does it mean having a trained model. Next, we will look at TAC KBP evaluation campaign, where other Natural Language systems are compared and new trends for research in the field are proposed; we will focus particularly on NEL systems and their global performances, to have an idea on the evaluation method. Finally, we will present our web service, an interface to Stanford NER which allows an user to train it from own datasets.
 %The final goal is to integrate it in a system which provides a single interface to many NER systems, NERD.
 
 \chapter{State of the art}
@@ -119,29 +124,119 @@ Together with the library, Stanford provides already some good serialized classi
 Text Analysis Conference (TAC) was born in 2009 to lead the research in Natural Language Processing, by means of the proposal of several tracks of study and a common definition of objectives, challenges and evaluation criteria. This effort, shared by many universities and research teams in the world, aims both to bring new solutions and to propose new challenges to the community. The track we are particularly interested in, for the tight relationship with the work on Named Entities, is Knowledge Base Population (KBP).
 
 KBP task is actually made of many subtasks: in the following sections, we will specifically focus on two of them, Slot Filling and Entity Linking task, that we already introduced in \S \ref{sec:intro}. The discussion of this topic is in any way meant to be exhaustive, but we would like to give here an interesting introspection on the problems, the solutions proposed and the evaluation of the results.
+%TODO insert space
+
+Task supervisors define the goals, the evaluation criteria and the format for the queries and provide the participants of a 2008 Wikipedia snapshot as referral Knowledge Base and some corpora of texts to train the systems. Other useful instruments are provided as well, such as mappings for Wikipedia infobox fields, which sometimes have non-unique identifiers.
 
 Task definitions can be found at %TODO cite.
 
 %TODO better specify the general approach of the "shared task"
 
 \section{Slot Filling task}
-Slot filling task aims to populate the fields of a structured form with data coming from unstructured knowledge. The typical scenario is the population of a Knowledge Base, such as Wikipedia: in this case, the structured form is Wikipedia infobox, whose fields vary depending of the type of the entity in object, and the unstructured knowledge is the text of the page (the description, in plain English).
+Slot filling task aims to populate the fields of a structured form with data coming from unstructured knowledge. The typical scenario is the population of a Knowledge Base, such as Wikipedia: in this case, the structured form is Wikipedia infobox, whose fields vary depending on the type of the entity in object, and the unstructured knowledge is the text of the page (the description, in plain English).
 We may want, for example, to extract some missing values for movie director Steven Spielberg, like the name of his spouse or children, directly from the text, or from a corpus of news articles. Obviously, a Slot Filler should also consider the case where such values are not pertinent, and the slot should not be filled (e.g., there are no children for a given person).
+
+\begin{table}
+\begin{tabularx}{\linewidth}{lXXXX}
+ & 2009 & 2010 & 2011 & 2012 \\
+\hline Entity types \\ 
+  PER & \tick & \tick & \tick & \tick \\
+  ORG & \tick & \tick & \tick & \tick \\
+  GPE & \tick & & & \\
+\hline Corpus & 1M articles & added 500K weblogs, more topics, more formats & added 1M newswire & added 1M webtext + 1M Spanish texts \\
+\hline Tasks\\ 
+ Slot Value linking & \tick & & & \\
+  Surprise Slot Filling & & \tick & & \\
+  Temporal Slot Filling & & & \tick & \\
+  Cross-lingual Slot Filling & & & & EN + Spanish \\
+  Slot filler validation (SFV) & & & & \tick \\
+  Confidence scores & & & & \tick \\
+  Justification & & & & \tick \\
+\hline Other issues\\ 
+ Closed systems & & \tick & \tick & \tick \\
+ 
+
+\end{tabularx}
+
+\caption{Comparison of the Slot Filling task definition in the years}
+\label{tab:sf}
+\end{table}
 
 Table \ref{tab:sf} shows a quick summary of the task in the years. First, we can notice that the corpus for training has been always growing, adding different types of sources. Entity types for which the slot filling task was required were initially Person, Organization and Geo-Political Entity: the last mentioned has been dropped in the following editions, since information in the corpora on such entities was not enough to fill the slots (usually, news articles citing toponyms do not give details useful for a Knowledge Base, like the number of inhabitants).
 
 The number and type of subtasks changed a lot through the years, including the following:
 
 \begin{description}
-\item{Slot value linking} This task consisted in linking the new filled slot with the appropriate entity in the KB (e.g. after having filled the value for Steven Spielberg's father, link it to the node for the right Arnold Spielberg). Since it had great overlap with the Entity Linking task, it was dismissed after the very first year.
-\item{Surprise Slot Filling} The teams were required to compete on a surprise subject and submit results in 4 days. A few teams participated.
-\item{Temporal Slot Filling} Together with the filling values, participating systems are required to provide the date when this value has been valid (e.g. for a "spouse" field, date of marriage and divorce). The task was divided in full filling (i.e. finding the values and provide the dates) and diagnostic filling (i.e. state, given the slot filling value, in which dates this value was valid). This task will be retried in 2013.
-\item{Cross-Lingual slot filling} Spanish language was added to the task.
-\item{Slot Filler Validation} The input of such a system is the output of other Slot Filling systems; the output, for each of them, is just whether they are correct or incorrect.
-\item{Confidence Scores} For each value to fill a slot, a confidence score between 0.0 and 1.0 is given. This score states how sure the system is of the choice; having different possible values for a given slot, the sum of all the confidence scores for those values is 1.
-\item{Justification} Together with the answer, a justification is given, in the form of a mention to the document id and offset in the page where such a justification can be found. For instance, a justification can be "From 1985 to 1989 Spielberg was married to actress Amy Irving".
-\item{Sentiment} In 2013, systems will optionally be required to state whether a value for a slot is given with a positive or negative sentiment (or neutral).
+\item[Slot value linking] This task consisted in linking the new filled slot with the appropriate entity in the KB (e.g. after having filled the value for Steven Spielberg's father, link it to the node for the right Arnold Spielberg). Since it had great overlap with the Entity Linking task, it was dismissed after the very first year.
+\item[Surprise Slot Filling] The teams were required to compete on a surprise subject and submit results in 4 days. A few teams participated.
+\item[Temporal Slot Filling] Together with the filling values, participating systems are required to provide the date when this value has been valid (e.g. for a "spouse" field, date of marriage and divorce). The task was divided in full filling (i.e. finding the values and provide the dates) and diagnostic filling (i.e. state, given the slot filling value, in which dates this value was valid). This task will be retried in 2013.
+\item[Cross-Lingual slot filling] Spanish language was added to the task.
+\item[Slot Filler Validation] The input of such a system is the output of other Slot Filling systems; the output, for each of them, is just whether they are correct or incorrect.
+\item[Confidence Scores] For each value to fill a slot, a confidence score between 0.0 and 1.0 is given. This score states how sure the system is of the choice; having different possible values for a given slot, the sum of all the confidence scores for those values is 1.
+\item[Justification] Together with the answer, a justification is given, in the form of a mention to the document id and offset in the page where such a justification can be found. For instance, a justification can be "From 1985 to 1989 Spielberg was married to actress Amy Irving".
+\item[Sentiment] In 2013, systems will optionally be required to state whether a value for a slot is given with a positive or negative sentiment (or neutral).
 \end{description}
+
+After the first year, participants were also asked to submit at least one run with closed systems, that is without access to web knowledge bases or search engines (e.g. Google).
+
+\section{Entity Linking task}
+We will approach the problem of Entity Linking first with an example.
+
+Suppose we have the following sentence:
+\begin{quote}
+After his death, Armstrong was described, in a statement released by the White House, as "among the greatest of American heroes - not just of his time, but of all time".
+\end{quote}
+
+After having correctly recognized the entity "Armstrong", and maybe having labelled it as a person, we would like to disambiguate it. Which Armstrong is it referring to? First, we should start thinking of all the Armstrongs we might know: Louis the jazzer, Lance the cyclist, Neil the astronaut...then, among the ones we have thought of, we should individuate who is dead and American. If there is still some ambiguity, we should eventually begin to reason on who is most probable to be named as "hero" by the White House, or find this sentence in an useful context.\footnote{This sentence referred to Neil Armstrong (1930 - 2012).}
+
+This example shows some of the problems occurring with Entity Linking, which can be defined as the problem of linking a Named Entity to the node in a knowledge base which it refers to. The challenge here is to face different sources of ambiguity, in order to link the Named Entity to the correct KB node: we have a one-to-many ambiguity, as in the example above, where the same string can refer to different nodes, but we have a many-to-one ambiguity as well, since the same entity in a KB node could be designated in different ways, by short names, by the initials, by just the first name or the surname, or maybe for a misspelling or transliteration. For instance, Louis Armstrong's full name was Louis Daniel Armstrong, but he was often nicknamed Satchmo (for satchel-mouth) or Pops.
+
+In Table \ref{tab:el} we see how the task has been developed through the years. Entity types, differently from Slot Filling task, have not changed. Corpus provided is the same as the one for Slot Filling, plus some additions for Cross-Lingual task. The task requires answers to be either the identifier of the KB node linked to the Named Entity in the query or NIL, if no nodes in the KB exist for it.
+Some subtasks were added in the years, but they are not mandatory.
+\begin{description}
+\item[Optional task] The goal of this subtask is to submit a system which does not make use of the description in the Wikipedia page, but only the fields in the infobox. This task was introduced because such systems can be easily applied to knowledge bases containing only structured data (which is often the case).
+\item[NIL Clustering] The subtask requires, for all NILs found, to cluster the ones which refer to the same entity. Together with Slot Filling this can form the basis for automatic insertion of new nodes in the KB.
+\item[Cross-Lingual task] The system should link entities found in another language (Chinese) text to English KB.
+\end{description}
+
+\begin{table}
+\begin{tabularx}{\linewidth}{lXXXX}
+ & 2009 & 2010 & 2011 & 2012 \\
+\hline Entity types \\ 
+  PER & \tick & \tick & \tick & \tick \\
+  ORG & \tick & \tick & \tick & \tick \\
+  GPE & \tick & \tick & \tick & \tick \\
+\hline Corpus & 1M articles & added 500K weblogs, more topics, more formats & added 1M newswire + 1M Chinese texts & added 1M webtext + 1M Chinese articles + 800K web texts\\
+\hline Tasks\\ 
+Optional Task & & \tick & \tick & \tick \\
+NIL Clustering & & & \tick & \tick \\
+Cross-Lingual  & & & \tick & \tick \\
+ 
+ 
+
+\end{tabularx}
+
+\caption{Comparison of the Entity Linking task definition in the years}
+\label{tab:el}
+\end{table}
+
+\subsection{General approach to EL system design}
+Studying the EL systems proposed to TAC we can individuate some general trends in their structure, as well as some common techniques which seem reasonable and intuitive.
+The core of all the systems is made of two critical phases: Candidate Generation and Candidate Ranking. This is indeed a natural way to proceed, and reflects the same approach we adopted in our previous example: to think of all possible entities with the given name and to figure out which of them is the most probable to be.
+
+Candidate Generation phase is usually based on a research, on the KB, of all the terms of the query; we usually also see some techniques to enlarge the set of candidates with less probable entities, in order to be sure the exact one, if it exists, is in the set. Here the most intuitive techniques, like a search in the title, perform well enough.
+Given the set of candidates, Candidate Ranking aims to assign a likelihood score, and choose whether the first candidate in the ranking is likely enough to be the answer, or if we don't have any link with the KB instead (NIL answer).
+
+We can see the two core phases in the general architecture in Figure \ref{fig:el_arch}. As we can notice, Candidate Generation is supported by some preprocessing phases, as Query Expansion, whose goal is to improve the query (expanding acronyms or adjusting misspellings) or Mention Collaborators, used in systems like UIUC's Wikification (Section \ref{sec:uiuc}). %TODO reference
+ Finally, and optionally, in the case the answer is NIL NIL Clustering is executed.
+ 
+\begin{figure}[htbp] 
+\centering
+\includegraphics[]{el_architecture}
+\caption{General Entity Linking system architecture}
+\label{fig:el_arch}
+\end{figure}
+
 
 \chapter{Building a framework for NER adaptation}
 
