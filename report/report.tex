@@ -61,7 +61,7 @@ Named Entity Recognition needs a first phase of training: a big training set is 
 The challenge here is to study how extractors can adapt to different contexts or corpora and how well they can react to the adaptation. In the next section, we will provide an insight on a NER system designed at Stanford, in order to give an understanding on how such training could be approached and what does it mean having a trained model. Next, we will look at TAC KBP evaluation campaign, where other Natural Language systems are compared and new trends for research in the field are proposed; we will focus particularly on NEL systems and their global performances, to have an idea on the evaluation method. Finally, we will present our web service, an interface to Stanford NER which allows an user to train it from own datasets.
 %The final goal is to integrate it in a system which provides a single interface to many NER systems, NERD.
 
-\chapter{State of the art}
+\chapter{Related work}
 
 \section{Conditional Random Fields}
 \label{sec:crfs}
@@ -128,7 +128,7 @@ KBP task is actually made of many subtasks: in the following sections, we will s
 
 Task supervisors define the goals, the evaluation criteria and the format for the queries and provide the participants of a 2008 Wikipedia snapshot as referral Knowledge Base and some corpora of texts to train the systems. Other useful instruments are provided as well, such as mappings for Wikipedia infobox fields, which sometimes have non-unique identifiers.
 
-Task definitions can be found at %TODO cite.
+Task definitions and details can be found in \cite{tac2009, tac2010, tac2011, tac2012}.
 
 %TODO better specify the general approach of the "shared task"
 
@@ -238,7 +238,7 @@ We can see the two core phases in the general architecture in Figure \ref{fig:el
 \end{figure}
 
 \subsection{A first example: HLTCOE solution}
-We will now show an overview of the main methods used by a real implementation of the general structure seen in previous section. The system in object was realized by the Human Language Technology Center of Excellence of Johns Hopkins University, Baltimore (HLTCOE).
+We will now show an overview of the main methods used by a real implementation of the general structure seen in previous section. The system in object was realized by the Human Language Technology Center of Excellence of Johns Hopkins University, Baltimore (HLTCOE) \cite{2010hltcoe}.
 
 In Candidate Generation phase we identify the following steps:
 \begin{itemize}
@@ -250,13 +250,52 @@ For each of the words in the expanded set (original query, acronyms, aliases):
 \begin{itemize}
 
 \item Search for exact matches in the KB;
-\item Search for KB nodes with words in common, and take the top 20 results;
+\item Search for KB nodes with words in common in the title, and take the top 20 results;
 \item Search for approximate matches with the KB nodes, and take the top 20 results.
 \end{itemize}
 
 Notably, the authors choose not to "pollute" the candidate set with too many fuzzy candidates, limiting the number of results from not-exact methods. Moreover, they also point out that some tests were made generating candidates from all the Named Entities in the document; while this improves the effectiveness of the candidate generation, it lowers the final accuracy of the system and therefore it has not been integrated.
 
+Candidate Ranking is performed using Support Vector Machine (SVM) tools. These are well-known supervised learning models, of which implementations and libraries exist in different languages\footnote{The one used by HLTCOE is SVM\textsuperscript{light} \url{http://svmlight.joachims.org/}}
+, therefore we will focus on the features used by HLTCOE team for the ranking, which can be seen as a classification problem. The peculiarity of such a system is the simple handling of NIL candidates, which are treated as normal KB nodes by the SVM: the only effort needed is to design features adapt to rank a non-matching entity as NIL, whereas other systems need to set a threshold to select between the best candidate and the NIL answer.
 
+Training data used came from different sources: 3904 queries from KBP 2009 evaluation, 747 examples given as training for KBP 2010 and 1615 self-annotated examples.
+
+Here are some examples of features used:
+\subsubsection{String features}
+
+\begin{itemize}
+\item Dice coefficient for the sets of character bigrams from the query name and the title of a candidate KB entry;
+\item The ratio of the recursive longest common substring to the shorter of the query name or the title of a KB entry;
+\item Checking whether all the letters of the query name are found in the same order in KB entry title (e.g. "POLITO" would match "Politecnico di Torino")
+\end{itemize}
+
+\subsubsection{Document similarity}
+
+\begin{itemize}
+\item Cosine similarity using TD/IDF weighting (term frequency-inverse document frequency);
+\item Dice coefficient over bags of words.
+\end{itemize}
+
+\subsubsection{Entity Type features}
+The type of query entity is determined using a Named Entity Recognizer; this value is then compared to the value in Wikipedia Infobox class.
+
+\subsubsection{Relation Features}
+Information in Wikipedia Infobox slots is used; all the words from all slots are treated as a document and document similarity previously described is performed against the query.
+
+\subsubsection{Named Entity Features}
+A supporting Named Entity for a candidate is a NE co-occurring in both the query document and the candidate KB node; it provides an hint that the context of the two documents is the same. Some features use them in different measures, such as percentage of supporting NEs, string comparisons between NEs in the documents and a boolean value stating whether no supporting NEs were found.
+
+\subsubsection{NIL Features}
+Some of the features designed explicitly to individuate the NIL candidate are:
+\begin{itemize}
+\item Minimum, Maximum and Average scores for several other features (i.e. Document Similarity scores, similarity between query name and KB node title, percentage of supporting NEs);
+\item A boolean value stating if there exist an exact match for the query name;
+\item A boolean value stating if no candidate had supporting NEs;
+\item Whether the set of Wikipedia pages from a June 2010 snapshot contains an exact match while no candidate was an exact match.
+\end{itemize}
+
+%TODO results and conclusions
 
 \chapter{Building a framework for NER adaptation}
 
