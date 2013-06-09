@@ -2,19 +2,23 @@
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx} 
+\usepackage{subfigure}
 \usepackage{pdfpages}
 \usepackage{fancyvrb}
 \usepackage{tabularx}
 %\usepackage{pifonts}
 %\newcommand{\tick}{\ding{52}}
 \newcommand{\tick}{$\times$}
+\newcommand{\avg}{\operatorname{avg}}
 
 \usepackage{amsmath}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
 
-\usepackage{cite}
+%\usepackage{cite}
+\usepackage[numbers]{natbib}
 \usepackage{url}
-\bibliographystyle{unsrt}
+\bibliographystyle{unsrtnat}
+%\bibliographystyle{unsrt}
 
 \graphicspath{{images/}}
 \begin{document}
@@ -56,7 +60,7 @@ A Named Entity is an entity which has a rigid designator, like a name (C.S. Lewi
 Named Entity Extraction, also known as Named Entity Recognition (NER), and Named Entity Linking (NEL) are subtasks of Information Extraction. In NER, we want to extract all the entities cited in a document and recognize their type (such as Person or Organization). In NEL, we want to link a Named Entity (referred by the name by which it appears in the document and its position) to a node in a Knowledge Base (KB), e.g. Wikipedia. Together with Slot Filling, which allows to fill the values in the KB nodes from their unstructured description, this tasks form the bigger task of automatically building a Knowledge Base from raw data.
 
 \section{The problem}
-Named Entity Recognition needs a first phase of training: a big training set is needed to reach good results, data needs to be collected from various sources and labelled. The very first extractors were trained on articles from newspapers; but performances on different type of contexts (such as Web fora, narrative, email messages...) are much worse than on documents from the same type of source, or maybe the same newspaper.
+Named Entity Recognition can be approached by means of a dictionary, collecting all the possible entities we want to recognize. However, this approach is not scalable or adaptable to new contexts; hence, new approaches based on statistical methods are born. Statistical recognition needs a first phase of training: a big training set is needed to reach good results, data need to be collected from various sources and labelled. The very first extractors were trained on articles from newspapers; but performances on different type of contexts (such as Web fora, narrative, email messages...) are much worse than on documents from the same type of source, or maybe the same newspaper.
 
 The challenge here is to study how extractors can adapt to different contexts or corpora and how well they can react to the adaptation. In the next section, we will provide an insight on a NER system designed at Stanford, in order to give an understanding on how such training could be approached and what does it mean having a trained model. Next, we will look at TAC KBP evaluation campaign, where other Natural Language systems are compared and new trends for research in the field are proposed; we will focus particularly on NEL systems and their global performances, to have an idea on the evaluation method. Finally, we will present our web service, an interface to Stanford NER which allows an user to train it from own datasets.
 %The final goal is to integrate it in a system which provides a single interface to many NER systems, NERD.
@@ -120,7 +124,15 @@ Once a model for the classifier is trained, it cannot be modified; however, sinc
 
 Together with the library, Stanford provides already some good serialized classifiers, trained on 3 (Location, Person, Organization), 4 (Location, Person, Organization, Misc) and 7 Entity Types (Time, Location, Organization, Person, Money, Percent, Date), trained on CoNLL 2003 and MUC English training data. A typical use case sees the user loading these models from memory and elaborate some document, skipping the training part.
 
+\section{NERD}
+NERD (Named Entity Recognition and Disambiguation) \cite{rizzo2012nerd} is a framework which aggregates several extractor APIs, giving the users a collective API and a web graphical interface.
+
+The web GUI allows to upload a document or to parse the content of an external webpage; then, we can select one of the annotators to see the result, with entities highlighted and linking to a referral URI if possible. The system is REST compliant, and each resource created gets an unique URI. APIs allow the use of extractors from every client implementing HTTP methods, as recommended in REST principles.
+
+The NERD framework also maps the different extractors to a unique set of classes and allows the users to combine the results from all the extractors in an unified output; some evaluation metrics for each extractor are also available.
+
 \chapter{TAC KBP evaluation campaign}
+\label{ch:tac}
 Text Analysis Conference (TAC) was born in 2009 to lead the research in Natural Language Processing, by means of the proposal of several tracks of study and a common definition of objectives, challenges and evaluation criteria. This effort, shared by many universities and research teams in the world, aims both to bring new solutions and to propose new challenges to the community. The track we are particularly interested in, for the tight relationship with the work on Named Entities, is Knowledge Base Population (KBP).
 
 KBP task is actually made of many subtasks: in the following sections, we will specifically focus on two of them, Slot Filling and Entity Linking task, that we already introduced in \S \ref{sec:intro}. The discussion of this topic is in any way meant to be exhaustive, but we would like to give here an interesting introspection on the problems, the solutions proposed and the evaluation of the results.
@@ -238,6 +250,7 @@ We can see the two core phases in the general architecture in Figure \ref{fig:el
 \end{figure}
 
 \subsection{A first example: HLTCOE solution}
+\label{sec:hltcoe}
 We will now show an overview of the main methods used by a real implementation of the general structure seen in previous section. The system in object was realized by the Human Language Technology Center of Excellence of Johns Hopkins University, Baltimore (HLTCOE) \cite{2010hltcoe}.
 
 In Candidate Generation phase we identify the following steps:
@@ -297,8 +310,78 @@ Some of the features designed explicitly to individuate the NIL candidate are:
 
 %TODO results and conclusions
 
-\chapter{Building a framework for NER adaptation}
+\subsection{A second example: CUNY-UIUC solution}
+\label{sec:uiuc}
+The system we are going to describe introduces some original concepts which deserve specific explanation. Nevertheless, many solutions adopted, namely in the candidate generation phase, have great overlap with the techniques we already presented in \S \ref{sec:hltcoe}, therefore we will not cover the complete system. For reference, please read \cite{2011cuny, chen2010cuny, 2012cuny}.
 
+The system here presented is a combination of techniques from the joint efforts of teams from University of Illinois at Urbana-Champaign (UIUC) and the City University of New York (CUNY), in which the task supervisor Heng Ji works as well. The two teams have also presented their systems separately in other editions.
+
+CUNY system develops 5 different rankers:
+\begin{itemize}
+\item An unsupervised ranker which compares entity similarities extracted using Stanford NER;
+\item An unsupervised ranker using the cosine similarity with tf-idf weights;
+\item A supervised ranker based on OpenNLP Maxent toolkit\footnote{\url{http://maxent.sourceforge.net/about.html}}; 
+\item A supervised ranker based on SVM\textsuperscript{light};
+\item A supervised listwise ranker based on \citet{cao2007}.
+\end{itemize}
+
+UIUC team has designed a system for the task of Disambiguation of Wikipedia. This task aims to take a set of mentions in a document and cross-link them to Wikipedia. The solution proposed is GLOW: Global and Local Wikification, also referred as Wikification. Such a system exploits both local and global clues to infer the mapping between the set of mentions and KB-nodes. Local clues is simply the matching between the mention name and the KB node title, together with some lexical clues. Global clues is the global coherence of the assignment in its whole: this is computed through an analysis of Wikipedia links, both incoming and outgoing, to check whether an assignment for the mention makes sense given the other assignments (uniform context assumption).
+
+The problem is to adapt GLOW to the EL task. In the EL task, we do not have mentions, but only the query name and the document; that is to say, we do not have a reference to the location where the query name appears. This becomes an issue for GLOW whenever the same string appears in the text referring to different entities, like in a review of the movie Titanic where both the movie and the ship are mentioned. Two solutions are proposed:
+\begin{itemize}
+\item A \emph{Naive Mention Identification}, which marks all the instances of the query name
+(The \underline{Ford} Library is named after Gerald \underline{Ford});
+
+\item A \emph{Named Entity Mention Identification}, which marks all the Named Entities containing the query name
+(The \underline{Ford Library} is named after \underline{Gerald Ford}).
+\end{itemize}
+
+\subsection{Evaluating the systems}
+For each of the queries asked to the system, accuracy is computed against gold-standard KB identifiers. Then, in 2009 and 2010 TAC editions Micro-Average was computed; from 2011 edition the official metric is B-Cubed+, a slightly modified version of B-Cubed.
+
+Let $L(e)$ and $C(e)$ be the category and the cluster of an entity mention $e$, and $SI(e)$ and $GI(e)$ the system and gold-standard KB identifier for $e$. We define the correctness of the relation between two entity mentions $e$ and $e'$ as:
+
+$$G(e,e') =
+\bigg \{
+\begin{array}{l}
+1 \text{ iff } L(e) = L(e') \land C(e) = C(e') \land GI(e) = SI(e) = GI(e') = SI(e') \\
+0 \text{ otherwise}\\
+\end{array}
+$$
+
+B-Cubed+ statistics are, formally:
+
+$$
+\text{Precision} = \avg_e [\avg_{e'/C(e)=C(e')} [G(e,e')]]
+$$
+$$
+\text{Recall} = \avg_e [\avg_{e'/L(e)=L(e')} [G(e,e')]]
+$$
+$$
+\text{F-Measure} = 2\times Precision \times Recall / (Precision + Recall)
+$$
+
+We see results for this statistics in Figure \ref{fig:elresults}. The systems we have analysed  have ranked well: particularly, HLTCOE was first in the Optional Task and in the top 10 for the standard task, together with CUNY-UIUC system. It is quite evident that results are really different between standard and Optional task, since the top 10 rank is almost completely different (Figures \ref{fig:2011res} and \ref{fig:2011opt_res}); also, we can see that best score for Optional Task is 15\% lower than its counterpart for standard task. The introduction of the new metric has not changed significantly the ranking: the correlation between the old micro-Average and the B-Cubed+ measure is about 0.99.
+
+\begin{figure}[htbp]
+%\centering
+
+\subfigure[Top 10 EL performances in 2010]{
+\includegraphics[width=\textwidth/2]{kbp2010overview-3}}
+\subfigure[Top 14 EL performances in 2011]{
+\label{fig:2011res}
+\includegraphics[width=\textwidth/2]{kbp2011-scores}}
+\subfigure[EL performances for Optional Task in 2011]{
+\label{fig:2011opt_res}
+\includegraphics[width=\textwidth/2]{kbp2011-optional_scores}}
+\subfigure[EL performances for Cross-Lingual Task in 2011]{
+\includegraphics[width=\textwidth/2]{kbp2011-cl}}
+\caption{Performances evaluation for Entity Linking task}
+\label{fig:elresults}
+\end{figure}
+
+\chapter{Building a framework for NER adaptation}
+\label{ch:pimp}
 %introduction and example of use
 In this chapter, we will see how we developed a NER framework based on Stanford NER (Section \ref{sec:StfdNER}). The system provides a web interface which allows an user to train the classifier loading own datasets, and to use it on own documents. %TODO check this sentence
 The web service is fully compliant to REST principles, %TODO footnote?
@@ -333,6 +416,7 @@ This data clearly show the need for avoiding unnecessary loads from disk: freque
 Representational State Transfer (REST) is a software architecture style defined in 2000 by Roy Fielding and emerged as predominant design model for web APIs. %TODO cite Fielding?
 In REST, client-server communication is based on the transfer of resource representations; therefore, we need to define what these resources are, how we identify them (URIs), by which HTTP method we can interact with them (GET, POST, PUT, DELETE) and which representation do we want for them.
 Our system accepts requests for representations in XML or JSON.
+%TODO cite NERD
 Resources are the following (URI are given with relative path):
 \subsection*{Documents}
 The main collection for documents to be elaborated. Its URI is \texttt{/documents}.
@@ -382,6 +466,16 @@ A model for Stanford classifier, i.e. a collection of training datasets. Its URI
 In the following scenario, an user tries the framework by submitting a document to the classifier with the default model; then, he repeats the experiment with a model self-trained, on a training set based on the first chapter of Jane Austen's Emma, where Named Entities of type Person are labelled.
 
 The client used is \texttt{curl}\footnote{\url{http://curl.haxx.se}}.
+
+\chapter{Conclusion}
+In Chapter \ref{ch:tac}, we have seen the TAC evaluation campaign along the years and explored some systems and results. What appears from the analysis is that the state of the art has reached a stable development, where researchers agree on the general structure of the system and the main facets of the problem to be addressed, as we have seen in the Entity Linking task. The challenge is now going towards performance improvements and queries of increasing difficulty, for instance involving tricky disambiguations or lack of context.
+
+We have also seen that actual best performances lay between 80 and 90 percent of accuracy, whereas the median is between 70 and 80 percent. %TODO would like to cite human performances
+Evaluation is usually performed against gold-standard identifiers (maybe human-annotated).  For the purpose of an evaluation or comparison tool, we should think about the way such goal-standard identifiers might be provided to (or by) the users. To this end, we could think either of a fixed gold-standard system provided to all the users or of allowing the user to load their own human-annotated resources for comparison; however, whereas the former could not easily adapt to all context and needs, the latter does not scale to large datasets, because such annotations could not be available. Further investigation is needed.
+
+We have then had an insight to the system we propose (Chapter \ref{ch:pimp}). We have shown that in a supervised system like Stanford NER we need training datasets of big dimensions, and that this leads to high computational load. Scaling up the load, this could get to very high response times, if not to filling up system resources, therefore big care should be taken. We have proposed some optimizations which trade between resource saving and small response times, but tests should be made with high loads of requests.
+
+Finally, designing a RESTful system showed several advantages, in particular from the perspective of giving access to third parties (i.e. APIs). Since resource representation is separated from the resource itself, different media types can be supported for the content retrieval. Moreover, implementing an uniform interface (i.e. the HTTP methods) allows developers to easily build or adapt clients to interface with the system.
 
 \cleardoublepage
 \addcontentsline{toc}{chapter}{Bibliography}
