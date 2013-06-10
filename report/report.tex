@@ -11,8 +11,71 @@
 \newcommand{\tick}{$\times$}
 \newcommand{\avg}{\operatorname{avg}}
 
+\usepackage{listings}
+\newcommand{\shell}{\noindent\texttt}
+
+
+% ------- for xml
+
+\usepackage{color}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  showstringspaces=false,
+  breaklines=true,
+}
+
+\lstdefinelanguage{XML}
+{
+  commentstyle=\color{gray}\upshape,
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+} %/--------xml
+
+%for json -----------
+\usepackage{xcolor}
+
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    showstringspaces=false,
+    breaklines=true,
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}%/json ----------
+
 \usepackage{amsmath}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
+\usepackage{spverbatim}
 
 %\usepackage{cite}
 \usepackage[numbers]{natbib}
@@ -466,6 +529,124 @@ A model for Stanford classifier, i.e. a collection of training datasets. Its URI
 In the following scenario, an user tries the framework by submitting a document to the classifier with the default model; then, he repeats the experiment with a model self-trained, on a training set based on the first chapter of Jane Austen's Emma, where Named Entities of type Person are labelled.
 
 The client used is \texttt{curl}\footnote{\url{http://curl.haxx.se}}.
+
+\begin{enumerate}
+\item The document is posted to the server:
+
+\begin{lstlisting}
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents -d "text=Emma and Elizabeth shared a dream."
+\end{lstlisting}
+
+Here it is the output of the command:
+%TODO try listings
+\begin{lstlisting}
+HTTP/1.1 201 Created
+Server: Apache-Coyote/1.1
+Location: http://localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents/213
+Content-Length: 0
+Date: Mon, 10 Jun 2013 13:09:46 GMT
+\end{lstlisting}
+
+We follow the location to check everything is ok:
+
+\begin{lstlisting}
+> curl -i -X GET localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents/213
+\end{lstlisting}
+
+\begin{lstlisting}
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: text/xml
+Content-Length: 133
+Date: Mon, 10 Jun 2013 14:29:39 GMT
+
+\end{lstlisting}
+
+%\lstset{language=XML}
+\noindent
+\begin{lstlisting}[language=XML]
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><document><id>213</id><text>Emma and Elizabeth shared a dream.</text></document>
+\end{lstlisting}
+
+We notice that the default response is in XML. In the rest of the scenario we will ask for JSON content type, adding a field in the negotiation.
+\item We create a new annotation without specifying a model:
+
+\begin{lstlisting}
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations -d "docId=213"
+\end{lstlisting}
+
+Again, we follow the location of the new resource created and get to the following:
+
+% \shell{> curl -i -X GET -H "Accept:application/json" localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations/278}
+
+\begin{lstlisting}
+> curl -i -X GET -H "Accept:application/json" localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations/278
+\end{lstlisting}
+
+
+\lstset{language={}}
+\begin{lstlisting}
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 10 Jun 2013 15:24:33 GMT
+\end{lstlisting}
+\begin{lstlisting}[language=json]
+{"token":[{"label":"O","word":"Emma"},{"label":"O","word":"and"},{"label":"PERSON","word":"Elizabeth"},{"label":"O","word":"shared"},{"label":"O","word":"a"},{"label":"O","word":"dream"},{"label":"O","word":"."}]}
+\end{lstlisting}
+
+We see that the default model does not correctly label "Emma", while Elizabeth is correctly tagged as \texttt{PERSON}.
+
+\item Let us create a new model:
+
+\begin{lstlisting}
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models
+\end{lstlisting}
+
+\begin{lstlisting}
+HTTP/1.1 201 Created
+Server: Apache-Coyote/1.1
+Location: http://localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models/52
+Content-Length: 0
+Date: Mon, 10 Jun 2013 16:09:46 GMT
+\end{lstlisting}
+
+\begin{lstlisting}
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models/52 -F "file=@jane-austen-emma-ch1.tsv"
+\end{lstlisting}
+
+We have just uploaded a file in the format seen in Table \ref{tab:inputfmt}, where all person names are manually labelled. More than a file can be uploaded to the same model, to improve the model with new labelled sets.
+
+\item Finally, we try the new model created with the same document as before:
+
+\begin{lstlisting}
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations -d "docId=213\&model=52"
+\end{lstlisting}
+
+\begin{lstlisting}
+> curl -i -X GET -H "Accept:application/json" localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations/279
+\end{lstlisting}
+
+\begin{lstlisting}
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 10 Jun 2013 16:10:14 GMT
+\end{lstlisting}
+\begin{lstlisting}[language=json]
+{"token":[{"label":"PERS","word":"Emma"},{"label":"O","word":"and"},{"label":"O","word":"Elizabeth"},{"label":"O","word":"shared"},{"label":"O","word":"a"},{"label":"O","word":"dream"},{"label":"O","word":"."}]}
+\end{lstlisting}
+
+We see the new model correctly tags Emma as a \texttt{PERS}, but fails to label Elizabeth.
+
+
+
+
+
+
+\end{enumerate}
 
 \chapter{Conclusion}
 In Chapter \ref{ch:tac}, we have seen the TAC evaluation campaign along the years and explored some systems and results. What appears from the analysis is that the state of the art has reached a stable development, where researchers agree on the general structure of the system and the main facets of the problem to be addressed, as we have seen in the Entity Linking task. The challenge is now going towards performance improvements and queries of increasing difficulty, for instance involving tricky disambiguations or lack of context.

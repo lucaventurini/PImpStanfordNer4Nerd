@@ -26,7 +26,7 @@ import javax.ws.rs.core.UriInfo;
 import fr.eurecom.nerd.pimpStfdNer.model.ClassifierMap;
 import fr.eurecom.nerd.pimpStfdNer.model.DocumentMap;
 
-@Path("/classifiers")
+@Path("/models")
 public class ClassifiersResource {
 
 	@Context

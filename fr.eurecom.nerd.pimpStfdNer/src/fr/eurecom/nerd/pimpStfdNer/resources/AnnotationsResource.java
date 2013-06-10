@@ -62,7 +62,7 @@ public class AnnotationsResource {
 	//@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response newDocument(@FormParam("docId") String docId,
-			@DefaultValue("default") @FormParam("classifier") String cl_id,
+			@DefaultValue("default") @FormParam("model") String cl_id,
 			@Context HttpServletResponse servletResponse) throws IOException {
 		//TODO: load classifier with docId
 		AbstractSequenceClassifier<CoreLabel> cl;
