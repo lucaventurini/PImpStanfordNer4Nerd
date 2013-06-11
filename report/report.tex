@@ -6,6 +6,7 @@
 \usepackage{pdfpages}
 \usepackage{fancyvrb}
 \usepackage{tabularx}
+\usepackage{float}
 %\usepackage{pifonts}
 %\newcommand{\tick}{\ding{52}}
 \newcommand{\tick}{$\times$}
@@ -76,14 +77,14 @@
 \begin{center}
 \includegraphics[width=5cm]{EURECOM_logo_quadri}
 \\[3cm]
-\textbf{\Huge{TBD}}
+\textbf{\Huge{A study of Stanford NER and of the TAC KBP task for NERD}}
 \\[2cm]
 \textbf{\textsc{\LARGE{Semester Project Report}}}
 \\[0.5cm]
 \LARGE{Luca Venturini}
 \\
 \large{Spring 2013}
-\\[8cm]
+\\[7cm]
 \columnsep3cm
 \begin{tabular}{p{8cm} p{8.5cm}}
 \small{\textbf{Supervisors:}\newline
@@ -98,7 +99,7 @@ Rapha\"el Troncy
 \chapter{Introduction}
 \label{sec:intro}
 Natural Language Recognition studies how to allow a machine to understand and possibly interact with a human being by means of the word, without any other kind of interactions between the two. A sign, such as a word, is formed by a signifier and a signified; only the former, the word itself, is accessible to the machine, while the latter is something meaningful only for men. However, machines can store and elaborate information correlated to signifiers, as well as all the linkages between them, without the need to understand their meaning. In other words, a machine is useful whenever it can shorten the path linking two pieces of information and show to the man the final linkage, saving the time to go through the entire path. Hence a machine can state the average life span for English monarchs, simply going through a knowledge base of historical figures and retrieving values for "age at death", without knowing the meaning of life or death (which would be problematic for men as well).
-Usually a machine is able to work on structured data, i.e. where the pairs field-value and the relations are explicit, as in the previous example. The main goal of Natural Language Recognition is to retrieve information from unstructured data, as a news article or a free-text form. In the context of Web today, we see Petabytes of unstructured data "in the wild", and search engines which would like to index and understand some of the content enclosed in these pages; an effort to reach this result has been led by the promoters of Semantic Web, which attempts to have an uniform semantics over web pages dealing with the same topics, by means of tags (i.e. structured data "hidden" in the code of the page). However, too much unstructured information still exists to be manually structured by man.
+Usually a machine is able to work on structured data, i.e. where the field-value pairs and the relations are explicit, as in the previous example. The main goal of Natural Language Recognition is to retrieve information from unstructured data, as a news article or a free-text form. In the context of Web today, we see Petabytes of unstructured data "in the wild", and search engines which would like to index and understand some of the content enclosed in these pages; an effort to reach this result has been led by the promoters of Semantic Web, which attempts to have an uniform semantics over web pages dealing with the same topics, by means of tags (i.e. structured data "hidden" in the code of the page). However, too much unstructured information still exists to be manually structured by man.
 \section{Named Entities}
 A Named Entity, as defined by Grishman in 1996 \cite{grishman1996}, is an entity which has a rigid designator, like a name (C.S. Lewis) or a number (year 1789). The definition of "rigid" can be loosened, depending on the task; sometimes money and time expressions are considered Named Entities as well, even in the cases they do not define uniquely a value (as in "at noon", when we don't know the 12 o'clock of which day we are talking about). Entities are named and unique even if they are not so in the text where they appear: in the sentence "The Queen died in 1603", "The Queen" is a designator for Queen Elizabeth I even if her name is not manifestly written, so a Named Entity Extractor should be defined to include such cases in the Named Entities.
 Named Entity Extraction, also known as Named Entity Recognition (NER), and Named Entity Linking (NEL) are subtasks of Information Extraction. In NER, we want to extract all the entities cited in a document and recognize their type (such as Person or Organization). In NEL, we want to link a Named Entity (referred by the name by which it appears in the document and its position) to a node in a Knowledge Base (KB), e.g. Wikipedia. Together with Slot Filling, which allows filling the values in the KB nodes from their unstructured description, these tasks form the bigger task of automatically building a Knowledge Base from raw data.
@@ -132,8 +133,8 @@ There exist lots of methods to solve these two maximization problems in literatu
 \label{sec:StfdNER}
 Stanford NER \cite{finkel2005incorporating} is a Java implementation of Conditional Random Fields for Named Entity Recognition, coupled with good feature extractors. The software provides interfaces to access the main utilities by command line and APIs to control the classifier (also known as CRFClassifier, to disambiguate from other tools developed by the same university based on Hidden Markov Models).
 The main difficulty approaching Stanford NER is the lack of documentation; little tutorials exist on using it by command line, but the only hints on APIs functioning are given by a couple of demos and the source code itself.
-The software allows to train the classifier from own data; as we have seen in Section \ref{sec:crfs}, we need some training data, i.e. a dataset of labeled documents. The input format makes the token-label pairs explicit by listing a token per line, as in the following example (where the character O stands for "Other"):
-\begin{table}[h]
+The software allows to train the classifier from own data; as we have seen in Section \ref{sec:crfs}, we need some training data, i.e. a dataset of labeled documents. The input format makes the token-label pairs explicit by listing a token per line, as in the following example (where the character O stands for "Other"):\\
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{ll}
 Sixteen &	O\\
@@ -156,7 +157,7 @@ Once a model for the classifier is trained, it cannot be modified; however, sinc
 Together with the library, Stanford provides already some good serialized classifiers, trained on 3 (Location, Person, Organization), 4 (Location, Person, Organization, Misc) and 7 Entity Types (Time, Location, Organization, Person, Money, Percent, Date), trained on CoNLL 2003 and MUC English training data. A typical use case sees the user loading these models from memory and elaborating some document, skipping the training part.
 \section{NERD}
 NERD (Named Entity Recognition and Disambiguation) \cite{rizzo2012nerd} is a framework which aggregates several extractor APIs, giving the users a collective API and a web graphical interface.
-The web GUI allows to upload a document or to parse the content of an external webpage; then, we can select one of the annotators to see the result, with entities highlighted and linking to a referral URI if possible. The system is REST compliant, and each resource created gets a unique URI. APIs allow the use of extractors from every client implementing HTTP methods, as recommended in REST principles.
+The web GUI allows us to upload a document or to parse the content of an external webpage; then, we can select one of the annotators to see the result, with entities highlighted and linking to a referral URI if possible. The system is REST compliant, and each resource created gets a unique URI. APIs allow the use of extractors from every client implementing HTTP methods, as recommended in REST principles.
 The NERD framework also maps the different extractors to a unique set of classes and allows the users to combine the results from all the extractors in an unified output; some evaluation metrics for each extractor are also available.
 \chapter{TAC KBP evaluation campaign}
 \label{ch:tac}
@@ -292,7 +293,7 @@ A supporting Named Entity for a candidate is a NE co-occurring in both the query
 Some of the features designed explicitly to individuate the NIL candidate are:
 \begin{itemize}
 \item Minimum, Maximum and Average scores for several other features (i.e. Document Similarity scores, similarity between query name and KB node title, percentage of supporting NEs);
-\item A boolean value stating if there exist an exact match for the query name;
+\item A boolean value stating if there exists an exact match for the query name;
 \item A boolean value stating if no candidate had supporting NEs;
 \item Whether the set of Wikipedia pages from a June 2010 snapshot contains an exact match while no candidate was an exact match.
 \end{itemize}
@@ -512,6 +513,7 @@ We see the new model correctly tags Emma as a \texttt{PERS}, but fails to label 
 \section{Future work}
 For implementing persistence in our system we are going to use MongoDB\footnote{\url{http://www.mongodb.org/}}.
 MongoDB is a document-oriented database belonging to the NoSQL family, which stores structured data as JSON-like documents. MongoDB will be used for the storage of Java objects, such as the ones used for documents and entity annotations; user-generated models will be instead serialized and stored in the file-system.
+
 With persistence implemented, we are going to have many accesses to the disk and, as we have seen in \S \ref{sec:profNER}, loading big models will slow down response time, even with the system empty. We propose two different optimizations based on caching. Notice that at the present time the system is designed to create the new user-generated model the very first time it is used. This yields to having a bigger response time at the moment of the first annotation request with the new model. On the contrary, generating the model right after a training dataset is uploaded would lead to unnecessary computational load; this is due to the fact that, because of the inner properties of CRFs, Stanford NER does not allow an incremental update of the model, therefore with each new training set the model needs to be rebuilt from zero. Hence, we need to trade between the quality of user experience and the system general performances (which would in turn effect on the user experience).
 The two optimizations proposed depend on which of the two aspects we want to focus our attention. The general workflow is the same: when the model is created, it is serialized and stored on the file system for further uses, but at the same time it is stored in a cache in memory. The same procedure is followed each time the serialized model is reloaded from the file system. The cache although uses a different page replacement policy to select the victim which will be removed from cache when it is full (for references, see \citet{silberOS}):
 \subsection*{System-centered optimization}
@@ -524,11 +526,24 @@ The model is recreated whenever a new training set is uploaded, after having ret
 \item (1,0) and (1,1) recently used - they have high probability of being reused soon.
 \end{enumerate}
 This 3-class division yields we need to visit the cache multiple times for a replacement.
+
+\begin{figure}[htbp]
+
+\subfigure[Workflow with postponed training and cache]{
+\includegraphics[width=\textwidth]{cache1}}
+\subfigure[Workflow with immediate training and cache]{
+\includegraphics[width=\textwidth]{cache2}}
+\caption{The two different optimization policies compared}
+
+\end{figure}
+
 \chapter{Conclusion}
 In Chapter \ref{ch:tac}, we have seen the TAC evaluation campaign along the years and explored some systems and results. What appears from the analysis is that the state of the art has reached a stable development, where researchers agree on the general structure of the system and the main facets of the problem to be addressed, as we have seen in the Entity Linking task. The challenge is now going towards performance improvements and queries of increasing difficulty, for instance involving tricky disambiguations or lack of context.
 We have also seen that actual best performances lay between 80 and 90 percent of accuracy, whereas the median is between 70 and 80 percent. %TODO would like to cite human performances
 Evaluation is usually performed against gold-standard identifiers (maybe human-annotated).  For the purpose of an evaluation or comparison tool, we should think about the way such goal-standard identifiers might be provided to (or by) the users. To this end, we could think either of a fixed gold-standard system provided to all the users or of allowing the user to load their own human-annotated resources for comparison; however, whereas the former could not easily adapt to all context and needs, the latter does not scale to large datasets, because such annotations could not be available. Further investigation is needed.
+
 We have then had an insight to the system we propose (Chapter \ref{ch:pimp}). We have shown that in a supervised system like Stanford NER we need training datasets of big dimensions, and that this leads to high computational load. Scaling up the load, this could get to very high response times, if not to filling up system resources, therefore big care should be taken. We have proposed some optimizations which trade between resource saving and small response times, but tests should be made with high loads of requests.
+
 Finally, designing a RESTful system showed several advantages, in particular from the perspective of giving access to third parties (i.e. APIs). Since resource representation is separated from the resource itself, different media types can be supported for the content retrieval. Moreover, implementing a uniform interface (i.e. the HTTP methods) allows developers to easily build or adapt clients to interface with the system.
 \cleardoublepage
 \addcontentsline{toc}{chapter}{Bibliography}
