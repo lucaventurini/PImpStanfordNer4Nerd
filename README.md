@@ -8,7 +8,7 @@ PImpStanfordNer4Nerd (or PImp, for friends) is a web framework designed to acces
 
 This repository contains three folders:
 * `/fr.eurecom.nerd.pimpStfdNer` is the folder where all the code for PImp is kept;
-* `/HelloWorld` contains some simple demos for Stanford NER, which show how to [extract entities](HelloWorld/src/fr/eurecom/nerd/nerdcrf/PImpTask.java) and [train a classifier](https://github.com/lucaventurini/PImpStanfordNer4Nerd/blob/master/HelloWorld/src/fr/eurecom/nerd/nerdcrf/PImpTask.java);
+* `/HelloWorld` contains some simple demos for Stanford NER, which show how to [extract entities](HelloWorld/src/fr/eurecom/nerd/nerdcrf/PImpTask.java) and [train a classifier](https://github.com/lucaventurini/PImpStanfordNer4Nerd/blob/master/HelloWorld/src/fr/eurecom/nerd/nerdcrf/HelloTrain.java);
 * `/report` contains the paper describing the work done for this project.
 
 ## Requirements
