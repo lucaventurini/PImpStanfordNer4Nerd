@@ -1,0 +1,577 @@
+ 
+
+
+
+
+
+  basicstyle=,
+  columns=fullflexible,
+  showstringspaces=false,
+  breaklines=true,
+
+
+XML
+
+  commentstyle=,
+  morestring=[b]",
+  morestring=[s]><,
+  morecomment=[s]<??>,
+  stringstyle=,
+  identifierstyle=,
+  keywordstyle=,
+  morekeywords=xmlns,version,type
+ 
+
+
+punctred!60!black
+numbmagenta!60!black
+
+json
+    basicstyle=,
+    showstringspaces=false,
+    breaklines=true,
+    literate=
+     *001
+      111
+      221
+      331
+      441
+      551
+      661
+      771
+      881
+      991
+      ::1
+      ,,1
+      1
+      1
+      [[1
+      ]]1,
+
+
+
+unsrtnat
+
+
+images/
+
+
+
+
+TBD
+
+
+Semester Project Report
+
+
+Luca Venturini
+
+
+Spring 2013
+
+
+3cm
+
+ 
+Introduction
+Natural Language Recognition studies how to allow a machine to understand and possibly interact with an human being by means of the word, without any other kind of interactions between the two. A sign, such as a word, is formed by a signifier and a signified; only the former, the word itself, is accessible to the machine, while the latter is something meaningful only for men. However, machines can store and elaborate information correlated to signifiers, as well as all the linkages between them, without the need to understand their meaning. In other words, a machine is useful whenever it can shorten the path linking two pieces of information and show to the man the final linkage, saving the time to go through all the path. Hence a machine can state the average life span for English monarchs, simply going through a knowledge base of historical figures and retrieving values for "age at death", without knowing the meaning of life or death (which would be problematic for men as well).
+
+Usually a machine is able to work on structured data, i.e. where the pairs field-value and the relations are explicit, as in the previous example. The main goal of Natural Language Recognition is to retrieve information from unstructured data, as a news article or a free-text form. In the context of Web today, we see Petabytes of unstructured data "in the wild", and search engines which would like to index and understand some of the content enclosed in these pages; an effort to reach this result has been led by the promoters of Semantic Web, which attempts to have an uniform semantics over web pages dealing with the same topics, by means of tags (i.e. structured data "hidden" in the code of the page). However, too much unstructured information still exists to be manually structured by man.
+
+
+Named Entities
+A Named Entity, as defined by Grishman in 1996, is an entity which has a rigid designator, like a name (C.S. Lewis) or a number (year 1789). The definition of "rigid" can be loosened, depending on the task; sometimes money and time expressions are considered Named Entities as well, even in the cases they do not define uniquely a value (as in "at noon", when we don't know the 12 o'clock of which day we are talking about). Entities are named and unique even if they are not so in the text where they appear: in the sentence "The Queen died in 1603", "The Queen" is a designator for Queen Elizabeth I even if her name is not manifestly written, so a Named Entity Extractor should be defined to include such cases in the Named Entities.
+
+Named Entity Extraction, also known as Named Entity Recognition (NER), and Named Entity Linking (NEL) are subtasks of Information Extraction. In NER, we want to extract all the entities cited in a document and recognize their type (such as Person or Organization). In NEL, we want to link a Named Entity (referred by the name by which it appears in the document and its position) to a node in a Knowledge Base (KB), e.g. Wikipedia. Together with Slot Filling, which allows to fill the values in the KB nodes from their unstructured description, this tasks form the bigger task of automatically building a Knowledge Base from raw data.
+
+
+The problem
+Named Entity Recognition can be approached by means of a dictionary, collecting all the possible entities we want to recognize. However, this approach is not scalable or adaptable to new contexts; hence, new approaches based on statistical methods are born. Statistical recognition needs a first phase of training: a big training set is needed to reach good results, data need to be collected from various sources and labelled. The very first extractors were trained on articles from newspapers; but performances on different type of contexts (such as Web fora, narrative, email messages...) are much worse than on documents from the same type of source, or maybe the same newspaper.
+
+The challenge here is to study how extractors can adapt to different contexts or corpora and how well they can react to the adaptation. In the next section, we will provide an insight on a NER system designed at Stanford, in order to give an understanding on how such training could be approached and what does it mean having a trained model. Next, we will look at TAC KBP evaluation campaign, where other Natural Language systems are compared and new trends for research in the field are proposed; we will focus particularly on NEL systems and their global performances, to have an idea on the evaluation method. Finally, we will present our web service, an interface to Stanford NER which allows an user to train it from own datasets.
+
+
+
+Related work
+In this chapter we will introduce the reader to Stanford NER. For this end, it is necessary to have an overview of Conditional Random Fields, which is the theoretical fundamental upon which Stanford NER is built; this small introduction will provide some common terminology and give an idea of the theory behind Named Entity Recognition seen as a supervised learning problem. Finally, we will see NERD, a framework developed here at EURECOM from where large inspiration was taken.
+
+
+Conditional Random Fields
+Conditional Random Fields (CRFs) were introduced by Lafferty, McCallum and Pereira in 2001 as a probabilistic model to segment and label sequence data. Considering our Named Entity Recognition task as a subtask of the labelling problem, we can define a log-linear model
+
+
+
+where  and  are our training sequence and the respective label sequence,  are real-valued weights for feature functions  and  is a partition function, defined as
+
+
+
+A model can contain hundreds of thousands of different feature functions, which are computed over a single word, its position in the sentence, its labelling and possibly all the surrounding context (the whole  and ). As example, consider the word "A.C.M.E.": its punctuation and the capitalization are two features strongly suggesting we are talking about an organization.
+
+Hence, training  corresponds to the Maximum Likelihood Estimation of the parameters of our model, that is to say
+
+
+
+Inference and decoding of  from a new sample  (i.e., labelling a document), will therefore correspond to
+
+
+
+There exist lots of methods to solve these two maximization problems in literature, and algorithms applied to the context of CRFs are still an interesting research field. Special training algorithms have been proposed, namely stochastic gradient ascent and derivations of Collins perceptron.
+
+
+Stanford NER
+Stanford NER is a Java implementation of Conditional Random Fields for Named Entity Recognition, coupled with good feature extractors. The software provides interfaces to access the main utilities by command line and APIs to control the classifier (also known as CRFClassifier, to disambiguate from other tools developed by the same university based on Hidden Markov Models).
+
+The main difficulty approaching Stanford NER is the lack of documentation; little tutorials exist on using it by command line, but the only hints on APIs functioning are given by a couple of demos and the sourcecode itself.
+
+The software allows to train the classifier from own data; as we have seen in Section , we need some training data, i.e. a dataset of labelled documents. The input format makes the token-label pairs explicit by listing a token per line, as in the following example (where the character O stands for "Other"):
+
+
+
+
+
+Input format for training datasets
+Once a model for the classifier is trained, it cannot be modified; however, since the training is deterministic, it is still possible to create new instances of the classifier from scratch. Trained classifiers are serialized and compressed into an archive storing the necessary parameters to reload it.
+
+Together with the library, Stanford provides already some good serialized classifiers, trained on 3 (Location, Person, Organization), 4 (Location, Person, Organization, Misc) and 7 Entity Types (Time, Location, Organization, Person, Money, Percent, Date), trained on CoNLL 2003 and MUC English training data. A typical use case sees the user loading these models from memory and elaborate some document, skipping the training part.
+
+
+NERD
+NERD (Named Entity Recognition and Disambiguation) is a framework which aggregates several extractor APIs, giving the users a collective API and a web graphical interface.
+
+The web GUI allows to upload a document or to parse the content of an external webpage; then, we can select one of the annotators to see the result, with entities highlighted and linking to a referral URI if possible. The system is REST compliant, and each resource created gets an unique URI. APIs allow the use of extractors from every client implementing HTTP methods, as recommended in REST principles.
+
+The NERD framework also maps the different extractors to a unique set of classes and allows the users to combine the results from all the extractors in an unified output; some evaluation metrics for each extractor are also available.
+
+
+TAC KBP evaluation campaign
+Text Analysis Conference (TAC) was born in 2009 to lead the research in Natural Language Processing, by means of the proposal of several tracks of study and a common definition of objectives, challenges and evaluation criteria. This effort, shared by many universities and research teams in the world, aims both to bring new solutions and to propose new challenges to the community. The track we are particularly interested in, for the tight relationship with the work on Named Entities, is Knowledge Base Population (KBP).
+
+KBP task is actually made of many subtasks: in the following sections, we will specifically focus on two of them, Slot Filling and Entity Linking task, that we already introduced in . The discussion of this topic is in any way meant to be exhaustive, but we would like to give here an interesting introspection on the problems, the solutions proposed and the evaluation of the results.
+
+
+Task supervisors define the goals, the evaluation criteria and the format for the queries and provide the participants of a 2008 Wikipedia snapshot as referral Knowledge Base and some corpora of texts to train the systems. Other useful instruments are provided as well, such as mappings for Wikipedia infobox fields, which sometimes have non-unique identifiers.
+
+Task definitions and details can be found in.
+
+
+
+
+Slot Filling task
+Slot filling task aims to populate the fields of a structured form with data coming from unstructured knowledge. The typical scenario is the population of a Knowledge Base, such as Wikipedia: in this case, the structured form is Wikipedia infobox, whose fields vary depending on the type of the entity in object, and the unstructured knowledge is the text of the page (the description, in plain English).
+We may want, for example, to extract some missing values for movie director Steven Spielberg, like the name of his spouse or children, directly from the text, or from a corpus of news articles. Obviously, a Slot Filler should also consider the case where such values are not pertinent, and the slot should not be filled (e.g., there are no children for a given person).
+
+
+lXXXX
+ & 2009 & 2010 & 2011 & 2012 
+
+Entity types 
+ 
+  PER & & & & 
+
+  ORG & & & & 
+
+  GPE & & & & 
+
+Corpus & 1M articles & added 500K weblogs, more topics, more formats & added 1M newswire & added 1M webtext + 1M Spanish texts 
+
+Tasks
+ 
+ Slot Value linking & & & & 
+
+  Surprise Slot Filling & & & & 
+
+  Temporal Slot Filling & & & & 
+
+  Cross-lingual Slot Filling & & & & EN + Spanish 
+
+  Slot filler validation (SFV) & & & & 
+
+  Confidence scores & & & & 
+
+  Justification & & & & 
+
+Other issues
+ 
+ Closed systems & & & & 
+
+ 
+
+Comparison of the Slot Filling task definition in the years
+Table  shows a quick summary of the task in the years. First, we can notice that the corpus for training has been always growing, adding different types of sources. Entity types for which the slot filling task was required were initially Person, Organization and Geo-Political Entity: the last mentioned has been dropped in the following editions, since information in the corpora on such entities was not enough to fill the slots (usually, news articles citing toponyms do not give details useful for a Knowledge Base, like the number of inhabitants).
+
+The number and type of subtasks changed a lot through the years, including the following:
+
+
+[Slot value linking] This task consisted in linking the new filled slot with the appropriate entity in the KB (e.g. after having filled the value for Steven Spielberg's father, link it to the node for the right Arnold Spielberg). Since it had great overlap with the Entity Linking task, it was dismissed after the very first year.
+[Surprise Slot Filling] The teams were required to compete on a surprise subject and submit results in 4 days. A few teams participated.
+[Temporal Slot Filling] Together with the filling values, participating systems are required to provide the date when this value has been valid (e.g. for a "spouse" field, date of marriage and divorce). The task was divided in full filling (i.e. finding the values and provide the dates) and diagnostic filling (i.e. state, given the slot filling value, in which dates this value was valid). This task will be retried in 2013.
+[Cross-Lingual slot filling] Spanish language was added to the task.
+[Slot Filler Validation] The input of such a system is the output of other Slot Filling systems; the output, for each of them, is just whether they are correct or incorrect.
+[Confidence Scores] For each value to fill a slot, a confidence score between 0.0 and 1.0 is given. This score states how sure the system is of the choice; having different possible values for a given slot, the sum of all the confidence scores for those values is 1.
+[Justification] Together with the answer, a justification is given, in the form of a mention to the document id and offset in the page where such a justification can be found. For instance, a justification can be "From 1985 to 1989 Spielberg was married to actress Amy Irving".
+[Sentiment] In 2013, systems will optionally be required to state whether a value for a slot is given with a positive or negative sentiment (or neutral).
+After the first year, participants were also asked to submit at least one run with closed systems, that is without access to web knowledge bases or search engines (e.g. Google).
+
+
+Entity Linking task
+We will approach the problem of Entity Linking first with an example.
+
+Suppose we have the following sentence:
+
+After his death, Armstrong was described, in a statement released by the White House, as "among the greatest of American heroes - not just of his time, but of all time".
+After having correctly recognized the entity "Armstrong", and maybe having labelled it as a person, we would like to disambiguate it. Which Armstrong is it referring to? First, we should start thinking of all the Armstrongs we might know: Louis the jazzer, Lance the cyclist, Neil the astronaut...then, among the ones we have thought of, we should individuate who is dead and American. If there is still some ambiguity, we should eventually begin to reason on who is most probable to be named as "hero" by the White House, or find this sentence in an useful context.(This sentence referred to Neil Armstrong (1930 - 2012).)
+
+This example shows some of the problems occurring with Entity Linking, which can be defined as the problem of linking a Named Entity to the node in a knowledge base which it refers to. The challenge here is to face different sources of ambiguity, in order to link the Named Entity to the correct KB node: we have a one-to-many ambiguity, as in the example above, where the same string can refer to different nodes, but we have a many-to-one ambiguity as well, since the same entity in a KB node could be designated in different ways, by short names, by the initials, by just the first name or the surname, or maybe for a misspelling or transliteration. For instance, Louis Armstrong's full name was Louis Daniel Armstrong, but he was often nicknamed Satchmo (for satchel-mouth) or Pops.
+
+In Table  we see how the task has been developed through the years. Entity types, differently from Slot Filling task, have not changed. Corpus provided is the same as the one for Slot Filling, plus some additions for Cross-Lingual task. The task requires answers to be either the identifier of the KB node linked to the Named Entity in the query or NIL, if no nodes in the KB exist for it.
+Some subtasks were added in the years, but they are not mandatory.
+
+[Optional task] The goal of this subtask is to submit a system which does not make use of the description in the Wikipedia page, but only the fields in the infobox. This task was introduced because such systems can be easily applied to knowledge bases containing only structured data (which is often the case).
+[NIL Clustering] The subtask requires, for all NILs found, to cluster the ones which refer to the same entity. Together with Slot Filling this can form the basis for automatic insertion of new nodes in the KB.
+[Cross-Lingual task] The system should link entities found in another language (Chinese) text to English KB.
+
+lXXXX
+ & 2009 & 2010 & 2011 & 2012 
+
+Entity types 
+ 
+  PER & & & & 
+
+  ORG & & & & 
+
+  GPE & & & & 
+
+Corpus & 1M articles & added 500K weblogs, more topics, more formats & added 1M newswire + 1M Chinese texts & added 1M webtext + 1M Chinese articles + 800K web texts
+
+Tasks
+ 
+Optional Task & & & & 
+
+NIL Clustering & & & & 
+
+Cross-Lingual  & & & & 
+
+ 
+ 
+
+Comparison of the Entity Linking task definition in the years
+
+General approach to EL system design
+Studying the EL systems proposed to TAC we can individuate some general trends in their structure, as well as some common techniques which seem reasonable and intuitive.
+The core of all the systems is made of two critical phases: Candidate Generation and Candidate Ranking. This is indeed a natural way to proceed, and reflects the same approach we adopted in our previous example: to think of all possible entities with the given name and to figure out which of them is the most probable to be.
+
+Candidate Generation phase is usually based on a research, on the KB, of all the terms of the query; we usually also see some techniques to enlarge the set of candidates with less probable entities, in order to be sure the exact one, if it exists, is in the set. Here the most intuitive techniques, like a search in the title, perform well enough.
+Given the set of candidates, Candidate Ranking aims to assign a likelihood score, and choose whether the first candidate in the ranking is likely enough to be the answer, or if we don't have any link with the KB instead (NIL answer).
+
+We can see the two core phases in the general architecture in Figure . As we can notice, Candidate Generation is supported by some preprocessing phases, as Query Expansion, whose goal is to improve the query (expanding acronyms or adjusting misspellings) or Mention Collaborators, used in systems like UIUC's Wikification (Section ). 
+ Finally, and optionally, in the case the answer is NIL NIL Clustering is executed.
+ 
+ 
+General Entity Linking system architecture
+
+A first example: HLTCOE solution
+We will now show an overview of the main methods used by a real implementation of the general structure seen in previous section. The system in object was realized by the Human Language Technology Center of Excellence of Johns Hopkins University, Baltimore (HLTCOE).
+
+In Candidate Generation phase we identify the following steps:
+
+Acronyms are expanded, whenever it is possible;
+A search for aliases of the query string is tried (in Wikipedia redirection pages and stock tickers);
+For each of the words in the expanded set (original query, acronyms, aliases):
+
+
+Search for exact matches in the KB;
+Search for KB nodes with words in common in the title, and take the top 20 results;
+Search for approximate matches with the KB nodes, and take the top 20 results.
+Notably, the authors choose not to "pollute" the candidate set with too many fuzzy candidates, limiting the number of results from not-exact methods. Moreover, they also point out that some tests were made generating candidates from all the Named Entities in the document; while this improves the effectiveness of the candidate generation, it lowers the final accuracy of the system and therefore it has not been integrated.
+
+Candidate Ranking is performed using Support Vector Machine (SVM) tools. These are well-known supervised learning models, of which implementations and libraries exist in different languages(The one used by HLTCOE is SVMlight http://svmlight.joachims.org/)
+, therefore we will focus on the features used by HLTCOE team for the ranking, which can be seen as a classification problem. The peculiarity of such a system is the simple handling of NIL candidates, which are treated as normal KB nodes by the SVM: the only effort needed is to design features adapt to rank a non-matching entity as NIL, whereas other systems need to set a threshold to select between the best candidate and the NIL answer.
+
+Training data used came from different sources: 3904 queries from KBP 2009 evaluation, 747 examples given as training for KBP 2010 and 1615 self-annotated examples.
+
+Here are some examples of features used:
+
+String features
+
+
+Dice coefficient for the sets of character bigrams from the query name and the title of a candidate KB entry;
+The ratio of the recursive longest common substring to the shorter of the query name or the title of a KB entry;
+Checking whether all the letters of the query name are found in the same order in KB entry title (e.g. "POLITO" would match "Politecnico di Torino")
+
+Document similarity
+
+
+Cosine similarity using TD/IDF weighting (term frequency-inverse document frequency);
+Dice coefficient over bags of words.
+
+Entity Type features
+The type of query entity is determined using a Named Entity Recognizer; this value is then compared to the value in Wikipedia Infobox class.
+
+
+Relation Features
+Information in Wikipedia Infobox slots is used; all the words from all slots are treated as a document and document similarity previously described is performed against the query.
+
+
+Named Entity Features
+A supporting Named Entity for a candidate is a NE co-occurring in both the query document and the candidate KB node; it provides an hint that the context of the two documents is the same. Some features use them in different measures, such as percentage of supporting NEs, string comparisons between NEs in the documents and a boolean value stating whether no supporting NEs were found.
+
+
+NIL Features
+Some of the features designed explicitly to individuate the NIL candidate are:
+
+Minimum, Maximum and Average scores for several other features (i.e. Document Similarity scores, similarity between query name and KB node title, percentage of supporting NEs);
+A boolean value stating if there exist an exact match for the query name;
+A boolean value stating if no candidate had supporting NEs;
+Whether the set of Wikipedia pages from a June 2010 snapshot contains an exact match while no candidate was an exact match.
+
+
+
+A second example: CUNY-UIUC solution
+The system we are going to describe introduces some original concepts which deserve specific explanation. Nevertheless, many solutions adopted, namely in the candidate generation phase, have great overlap with the techniques we already presented in , therefore we will not cover the complete system. For reference, please read.
+
+The system here presented is a combination of techniques from the joint efforts of teams from University of Illinois at Urbana-Champaign (UIUC) and the City University of New York (CUNY), in which the task supervisor Heng Ji works as well. The two teams have also presented their systems separately in other editions.
+
+CUNY system develops 5 different rankers:
+
+An unsupervised ranker which compares entity similarities extracted using Stanford NER;
+An unsupervised ranker using the cosine similarity with tf-idf weights;
+A supervised ranker based on OpenNLP Maxent toolkit(http://maxent.sourceforge.net/about.html); 
+A supervised ranker based on SVMlight;
+A supervised listwise ranker based on.
+UIUC team has designed a system for the task of Disambiguation of Wikipedia. This task aims to take a set of mentions in a document and cross-link them to Wikipedia. The solution proposed is GLOW: Global and Local Wikification, also referred as Wikification. Such a system exploits both local and global clues to infer the mapping between the set of mentions and KB-nodes. Local clues is simply the matching between the mention name and the KB node title, together with some lexical clues. Global clues is the global coherence of the assignment in its whole: this is computed through an analysis of Wikipedia links, both incoming and outgoing, to check whether an assignment for the mention makes sense given the other assignments (uniform context assumption).
+
+The problem is to adapt GLOW to the EL task. In the EL task, we do not have mentions, but only the query name and the document; that is to say, we do not have a reference to the location where the query name appears. This becomes an issue for GLOW whenever the same string appears in the text referring to different entities, like in a review of the movie Titanic where both the movie and the ship are mentioned. Two solutions are proposed:
+
+A Naive Mention Identification, which marks all the instances of the query name
+(The Ford Library is named after Gerald Ford);
+
+A Named Entity Mention Identification, which marks all the Named Entities containing the query name
+(The Ford Library is named after Gerald Ford).
+
+Evaluating the systems
+For each of the queries asked to the system, accuracy is computed against gold-standard KB identifiers. Then, in 2009 and 2010 TAC editions Micro-Average was computed; from 2011 edition the official metric is B-Cubed+, a slightly modified version of B-Cubed.
+
+Let  and  be the category and the cluster of an entity mention , and  and  the system and gold-standard KB identifier for . We define the correctness of the relation between two entity mentions  and  as:
+
+
+
+
+
+
+
+
+
+B-Cubed+ statistics are, formally:
+
+
+
+
+
+
+
+
+
+
+
+We see results for this statistics in Figure . The systems we have analysed  have ranked well: particularly, HLTCOE was first in the Optional Task and in the top 10 for the standard task, together with CUNY-UIUC system. It is quite evident that results are really different between standard and Optional task, since the top 10 rank is almost completely different (Figures  and ); also, we can see that best score for Optional Task is 15 lower than its counterpart for standard task. The introduction of the new metric has not changed significantly the ranking: the correlation between the old micro-Average and the B-Cubed+ measure is about 0.99.
+
+
+
+
+[Top 10 EL performances in 2010]
+
+[Top 14 EL performances in 2011]
+
+[EL performances for Optional Task in 2011]
+
+[EL performances for Cross-Lingual Task in 2011]
+
+Performances evaluation for Entity Linking task
+
+Building a framework for NER adaptation
+
+In this chapter, we will see how we developed a NER framework based on Stanford NER (Section ). The system provides a web interface which allows an user to train the classifier loading own datasets, and to use it on own documents. 
+The web service is fully compliant to REST principles, 
+hence APIs are of easy access from a client implementing HTTP methods. 
+
+
+Profiling Stanford NER
+To design a service aimed to several users, able to manage different requests at the same time is not a trivial task. Performances of a NER system greatly vary accordingly to the input size (both for training and extraction) and can take the waiting time for the users over limits of bearability. Before approaching the whole design, we investigated on the bottlenecks of Stanford NER system, in order to understand which phases would have taken the biggest part in response time.
+
+Tools used to profile Java code were the ones integrated in VisualVM (http://visualvm.java.net).
+
+ 
+CPU usage per function call (small text)
+ 
+CPU usage per function call (large text)
+We executed tests on a small text (the main content of a Wikipedia page)(Figure ) and on a bigger one, Jane Austen's Pride and Prejudice (Figure ).
+As we can see in Figure , the greatest part of the execution time is spent loading the model of the classifier from memory. As input size grows, the initial loading takes less percentage of the time, but it is still a remarkable load. In Figure  we notice also a second function taking a good slice of CPU time, featuresC(): this function is indeed in charge of tokenizing the text.
+
+This data clearly show the need for avoiding unnecessary loads from disk: frequently used models should be kept in cache whenever possible, taking care of the hardware limits, since models can have great space requirements.
+
+
+Schema of resources
+
+Representational State Transfer (REST) is a software architecture style defined in 2000 by Roy Fielding and emerged as predominant design model for web APIs. 
+In REST, client-server communication is based on the transfer of resource representations; therefore, we need to define what these resources are, how we identify them (URIs), by which HTTP method we can interact with them (GET, POST, PUT, DELETE) and which representation do we want for them.
+Our system accepts requests for representations in XML or JSON.
+
+Resources are the following (URI are given with relative path):
+
+Documents
+The main collection for documents to be elaborated. Its URI is /documents.
+Methods accepted:
+
+
+POST Create a new document, whose text is specified in the mandatory field text.
+
+Document
+The document to be elaborated, i.e. whose entities we want to extract. Its URI is /documents/docid.
+Methods accepted:
+
+
+GET Get the representation for the document.
+
+Annotations
+The main collection for results from extraction. Its URI is /annotations.
+Methods accepted:
+
+POST Create a new annotation for document specified in field id, with the model specified in field model (optional). If model is not specified, the default one will be used.
+
+Annotation
+The result from an extraction, a list of all entities recognized in the text. Its URI is /annotations/annid. Methods accepted:
+
+GET Get the representation for the list of entity-label pairs.
+
+Models
+The main collections for models. Its URI is /models. Methods accepted:
+
+POST Create a new model.
+
+Model
+A model for Stanford classifier, i.e. a collection of training datasets. Its URI is /models/modid. Methods accepted:
+
+POST Create a new training dataset for the model, from a file posted with content-type multipart/form-data, in CoNLL format (as in Table ). 
+
+
+
+A sample use case
+
+In the following scenario, an user tries the framework by submitting a document to the classifier with the default model; then, he repeats the experiment with a model self-trained, on a training set based on the first chapter of Jane Austen's Emma, where Named Entities of type Person are labelled.
+
+The client used is curl(http://curl.haxx.se).
+
+
+The document is posted to the server:
+
+
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents -d "text=Emma and Elizabeth shared a dream."
+Here it is the output of the command:
+
+
+HTTP/1.1 201 Created
+Server: Apache-Coyote/1.1
+Location: http://localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents/213
+Content-Length: 0
+Date: Mon, 10 Jun 2013 13:09:46 GMT
+We follow the location to check everything is ok:
+
+
+> curl -i -X GET localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents/213
+
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: text/xml
+Content-Length: 133
+Date: Mon, 10 Jun 2013 14:29:39 GMT
+
+
+[language=XML]
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><document><id>213</id><text>Emma and Elizabeth shared a dream.</text></document>
+We notice that the default response is in XML. In the rest of the scenario we will ask for JSON content type, adding a field in the negotiation.
+We create a new annotation without specifying a model:
+
+
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations -d "docId=213"
+Again, we follow the location of the new resource created and get to the following:
+
+
+
+
+> curl -i -X GET -H "Accept:application/json" localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations/278
+language=
+
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 10 Jun 2013 15:24:33 GMT
+[language=json]
+"token":["label":"O","word":"Emma","label":"O","word":"and","label":"PERSON","word":"Elizabeth","label":"O","word":"shared","label":"O","word":"a","label":"O","word":"dream","label":"O","word":"."]
+We see that the default model does not correctly label "Emma", while Elizabeth is correctly tagged as PERSON.
+
+Let us create a new model:
+
+
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models
+
+HTTP/1.1 201 Created
+Server: Apache-Coyote/1.1
+Location: http://localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models/52
+Content-Length: 0
+Date: Mon, 10 Jun 2013 16:09:46 GMT
+
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models/52 -F "file=@jane-austen-emma-ch1.tsv"
+We have just uploaded a file in the format seen in Table , where all person names are manually labelled. More than a file can be uploaded to the same model, to improve the model with new labelled sets.
+
+Finally, we try the new model created with the same document as before:
+
+
+> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations -d "docId=213&model=52"
+
+> curl -i -X GET -H "Accept:application/json" localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations/279
+
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Mon, 10 Jun 2013 16:10:14 GMT
+[language=json]
+"token":["label":"PERS","word":"Emma","label":"O","word":"and","label":"O","word":"Elizabeth","label":"O","word":"shared","label":"O","word":"a","label":"O","word":"dream","label":"O","word":"."]
+We see the new model correctly tags Emma as a PERS, but fails to label Elizabeth.
+
+
+Future work
+For implementing persistence in our system we are going to use MongoDB(http://www.mongodb.org/).
+MongoDB is a document-oriented database belonging to the NoSQL family, which stores structured data as JSON-like documents. MongoDB will be used for the storage of Java objects, such as the ones used for documents and entity annotations; user-generated models will be instead serialized and stored in the file-system.
+
+With persistence implemented, we are going to have many accesses to the disk and, as we have seen in , loading big models will slow down response time, even with the system empty. We propose two different optimizations based on caching. Notice that at the present time the system is designed to create the new user-generated model the very first time it is used. This yields to having a bigger response time at the moment of the first annotation request with the new model. On the contrary, generating the model right after a training dataset is uploaded would lead to unnecessary computational load; this is due to the fact that, because of the inner properties of CRFs, Stanford NER does not allow an incremental update of the model, therefore with each new training set the model needs to be rebuilt from zero. Hence, we need to trade between the quality of user experience and the system general performances (which would in turn effect on the user experience).
+
+The two optimizations proposed depend on which of the two aspects we want to focus our attention. The general workflow is the same: when the model is created, it is serialized and stored on the file system for further uses, but at the same time it is stored in a cache in memory. The same procedure is followed each time the serialized model is reloaded from the file system. The cache although uses a different page replacement policy to select the victim which will be removed from cache when it is full (for references, see):
+
+
+System-centered optimization
+The model is created at the first use (i.e. when the first annotation with that model is requested). Page replacement for caching adopts a Least Recently Used policy, approximated with a Second-Chance algorithm (also known as clock algorithm). A reference bit for each model is set to 1 whenever the model is read from the cache; whenever we look for the victim, we visit the cache circularly until a model with reference bit equal to 0 is found, setting all the encountered reference bits to 0. This gives a "second chance" to models not to be dropped off the cache, whenever other models have stayed in cache for a longer time, thus giving priority to least recently used models.
+
+User-centered optimization
+The model is recreated whenever a new training set is uploaded, after having returned a 201 Resource created for the uploaded training set to the client. This allows to have a model ready in the cache at the time the user will ask for an annotation. We modify the Second-Chance algorithm to give priority to the models which were already used for an annotation, since this is a sign that the creation of those models has been completed; for this end, we use two bits, a reference bit and a modify bit, as following:
+
+(0,0) neither recently used for an annotation nor recently created - best model to be replaced;
+(0,1) not recently used but recently created - they could be used soon, but they could also be dropped by the upload of a new training set, so they are our second choice;
+(1,0) and (1,1) recently used - they have high probability of being reused soon.
+This 3-class division yields we need to visit the cache multiple times for a replacement.
+
+
+Conclusion
+In Chapter , we have seen the TAC evaluation campaign along the years and explored some systems and results. What appears from the analysis is that the state of the art has reached a stable development, where researchers agree on the general structure of the system and the main facets of the problem to be addressed, as we have seen in the Entity Linking task. The challenge is now going towards performance improvements and queries of increasing difficulty, for instance involving tricky disambiguations or lack of context.
+
+We have also seen that actual best performances lay between 80 and 90 percent of accuracy, whereas the median is between 70 and 80 percent. 
+Evaluation is usually performed against gold-standard identifiers (maybe human-annotated).  For the purpose of an evaluation or comparison tool, we should think about the way such goal-standard identifiers might be provided to (or by) the users. To this end, we could think either of a fixed gold-standard system provided to all the users or of allowing the user to load their own human-annotated resources for comparison; however, whereas the former could not easily adapt to all context and needs, the latter does not scale to large datasets, because such annotations could not be available. Further investigation is needed.
+
+We have then had an insight to the system we propose (Chapter ). We have shown that in a supervised system like Stanford NER we need training datasets of big dimensions, and that this leads to high computational load. Scaling up the load, this could get to very high response times, if not to filling up system resources, therefore big care should be taken. We have proposed some optimizations which trade between resource saving and small response times, but tests should be made with high loads of requests.
+
+Finally, designing a RESTful system showed several advantages, in particular from the perspective of giving access to third parties (i.e. APIs). Since resource representation is separated from the resource itself, different media types can be supported for the content retrieval. Moreover, implementing an uniform interface (i.e. the HTTP methods) allows developers to easily build or adapt clients to interface with the system.
+
+*
+
+
