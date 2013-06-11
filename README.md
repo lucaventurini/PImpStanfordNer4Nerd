@@ -26,6 +26,7 @@ Then run the .war on your server.
 
 In the following scenario, an user tries the framework by submitting a document to the classifier with the default model; then, he repeats the experiment with a model self-trained, on a training set based on the first chapter of Jane Austen's Emma, where Named Entities of type Person are labelled.
 The client used is `curl`.
+
 1. The document is posted to the server:
 
 	> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/documents -d "text=Emma and Elizabeth shared a dream."
@@ -71,7 +72,7 @@ Again, we follow the location of the new resource created and get to the followi
 
 	{"token":[{"label":"O","word":"Emma"},{"label":"O","word":"and"},{"label":"PERSON","word":"Elizabeth"},{"label":"O","word":"shared"},{"label":"O","word":"a"},{"label":"O","word":"dream"},{"label":"O","word":"."}]}
 
-We see that the default model does not correctly label "Emma", while Elizabeth is correctly tagged as \texttt{PERSON}.
+We see that the default model does not correctly label "Emma", while Elizabeth is correctly tagged as PERSON.
 3. Let us create a new model:
 
 	> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models
@@ -84,7 +85,7 @@ We see that the default model does not correctly label "Emma", while Elizabeth i
 
 	> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/models/52 -F "file=@jane-austen-emma-ch1.tsv"
 
-We have just uploaded a file in the format seen in Table \ref{tab:inputfmt}, where all person names are manually labeled. More than a file can be uploaded to the same model, to improve the model with new labeled sets.
+We have just uploaded a file in the format seen in [this file](HelloWorld/jane-austen-emma-ch1.tsv), where all person names are manually labeled. More than a file can be uploaded to the same model, to improve the model with new labeled sets.
 4. Finally, we try the new model created with the same document as before:
 
 	> curl -i -X POST localhost:8080/fr.eurecom.nerd.pimpStfdNer/pimp/annotations -d "docId=213&model=52"
@@ -99,7 +100,7 @@ We have just uploaded a file in the format seen in Table \ref{tab:inputfmt}, whe
 
 	{"token":[{"label":"PERS","word":"Emma"},{"label":"O","word":"and"},{"label":"O","word":"Elizabeth"},{"label":"O","word":"shared"},{"label":"O","word":"a"},{"label":"O","word":"dream"},{"label":"O","word":"."}]}
 
-We see the new model correctly tags Emma as a \texttt{PERS}, but fails to label Elizabeth.
+We see the new model correctly tags Emma as a PERS, but fails to label Elizabeth.
 
 ## References
 
